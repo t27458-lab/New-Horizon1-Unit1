@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>英単語 並び替え協力ゲーム</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 460px;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+    }
+    .screen.active { display: flex; }
+
+    h1 { font-size: 26px; font-weight: bold; color: #7dd3fc; line-height: 1.4; }
+    h2 { font-size: 20px; font-weight: bold; color: #7dd3fc; }
+    .sub { font-size: 14px; color: #64748b; }
+
+    .btn {
+      width: 100%;
+      max-width: 280px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active  { opacity: 0.75; transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    .btn-blue  { background: #3b82f6; color: white; }
+    .btn-slate { background: #334155; color: #e2e8f0; }
+    .btn-green { background: #22c55e; color: white; }
+
+    .code-box {
+      background: #1e293b;
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 20px 48px;
+      font-size: 52px;
+      font-weight: bold;
+      letter-spacing: 10px;
+      color: #7dd3fc;
+    }
+    .code-input {
+      background: #1e293b;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 36px;
+      color: white;
+      text-align: center;
+      width: 180px;
+      letter-spacing: 8px;
+    }
+    .code-input:focus { outline: none; border-color: #60a5fa; }
+
+    .status-msg {
+      font-size: 15px;
+      color: #94a3b8;
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      background: #f59e0b;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: blink 1s infinite;
+    }
+    .dot.green { background: #22c55e; animation: none; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .err { color: #f87171; font-size: 14px; min-height: 18px; }
+
+    /* ── Game ── */
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hp-row   { font-size: 30px; letter-spacing: 4px; }
+    .q-badge  {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .turn-badge {
+      width: 100%;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .my-turn    { background: #166534; color: #bbf7d0; }
+    .their-turn { background: #1e293b; color: #475569; }
+
+    .ja-box {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .ja-label { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+    .ja-text  { font-size: 20px; line-height: 1.6; }
+
+    .answer-box {
+      width: 100%;
+      min-height: 62px;
+      background: #1e293b;
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+    .answer-chip {
+      background: #1d4ed8;
+      color: white;
+      border-radius: 8px;
+      padding: 7px 13px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .placeholder { color: #334155; font-size: 14px; }
+
+    .words-grid {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .word-btn {
+      background: #1e40af;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 19px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.12s, transform 0.1s;
+    }
+    .word-btn:active   { opacity: 0.7; transform: scale(0.94); }
+    .word-btn:disabled { background: #1e293b; color: #2d3748; cursor: default; transform: none; }
+
+    .result-emoji { font-size: 80px; }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+    #flash.show { opacity: 1; }
+
+    /* ── 設定未完了バナー ── */
+    #config-warning {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #dc2626;
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="config-warning">
+  ⚠️ Firebase の設定が未完了です。HTMLファイル内の <code>firebaseConfig</code> を入力してください。
+</div>
+
+<!-- ① ロール選択 -->
+<div class="screen active" id="s-role">
+  <h1>英単語<br>並び替え協力ゲーム</h1>
+  <p class="sub">NH1 Unit 1 — 2人で英文を完成させよう！</p>
+  <button class="btn btn-blue"  onclick="selectRole('p1')">P1 ： ルームを作る</button>
+  <button class="btn btn-slate" onclick="selectRole('p2')">P2 ： コードを入力</button>
+</div>
+
+<!-- ② P1：コード表示 -->
+<div class="screen" id="s-host">
+  <h2>ルームコード</h2>
+  <div class="code-box" id="code-display">----</div>
+  <div class="status-msg">
+    <div class="dot" id="host-dot"></div>
+    <span id="host-status">準備中...</span>
+  </div>
+  <p class="err" id="host-err"></p>
+  <button class="btn btn-slate" style="font-size:14px;padding:10px;max-width:200px" onclick="location.reload()">やり直す</button>
+</div>
+
+<!-- ③ P2：コード入力 -->
+<div class="screen" id="s-join">
+  <h2>コードを入力</h2>
+  <input class="code-input" id="code-input" type="text"
+    inputmode="numeric" maxlength="4" placeholder="----">
+  <button class="btn btn-blue" id="join-btn" onclick="joinRoom()">接続する</button>
+  <div class="status-msg" style="justify-content:center" id="join-status-wrap" hidden>
+    <div class="dot" id="join-dot"></div>
+    <span id="join-status"></span>
+  </div>
+  <p class="err" id="join-err"></p>
+  <button class="btn btn-slate" style="font-size:14px;padding:10px;max-width:200px;display:none" id="retry-btn" onclick="location.reload()">やり直す</button>
+</div>
+
+<!-- ④ ゲーム -->
+<div class="screen" id="s-game">
+  <div class="game-header">
+    <div class="hp-row" id="hp-row">❤️❤️❤️</div>
+    <div class="q-badge" id="q-badge">Q1 / 2</div>
+  </div>
+  <div class="turn-badge their-turn" id="turn-badge">---</div>
+  <div class="ja-box">
+    <div class="ja-label">日本語</div>
+    <div class="ja-text" id="ja-text"></div>
+  </div>
+  <div class="answer-box" id="answer-box">
+    <span class="placeholder">ここに英文が完成します</span>
+  </div>
+  <div class="words-grid" id="words-grid"></div>
+</div>
+
+<!-- ⑤ リザルト -->
+<div class="screen" id="s-result">
+  <div class="result-emoji" id="r-emoji">🎉</div>
+  <h2 id="r-title"></h2>
+  <p id="r-msg" class="sub"></p>
+  <button class="btn btn-green" onclick="location.reload()">もう一度</button>
+</div>
+
+<div id="flash"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  🔧 Firebase 設定（ここを書き換えてください）
+//  Firebase Console → プロジェクトの設定 → マイアプリ → SDK の設定と構成
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyDTP8NVodlXOxb9rQEjYISqcQ5a4Fv5tu0",
+  authDomain:        "nhg-game1.firebaseapp.com",
+  databaseURL:       "https://nhg-game1-default-rtdb.firebaseio.com",
+  projectId:         "nhg-game1",
+  storageBucket:     "nhg-game1.firebasestorage.app",
+  messagingSenderId: "758001607991",
+  appId:             "1:758001607991:web:1e5463378cd0be266da6b2"
+};
+
+// ════════════════════════════════════════════════════════════
+//  問題データ
+// ════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    ja: "私はアニメファンです。",
+    correct: ["I", "am", "an", "anime", "fan", "."],
+    decoys:  ["are", "the", "is"]
+  },
+  {
+    ja: "彼女は音楽が好きです。",
+    correct: ["She", "likes", "music", "."],
+    decoys:  ["He", "love", "her"]
+  }
+];
+
+// ════════════════════════════════════════════════════════════
+//  初期化チェック
+// ════════════════════════════════════════════════════════════
+const configReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
+if (!configReady) {
+  document.getElementById('config-warning').style.display = 'block';
+}
+
+let db        = null;
+let stateRef  = null;
+let myRole    = null;
+let roomCode  = null;
+
+// Firebase は配列をオブジェクト化することがあるので安全に変換
+function toArray(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return Object.values(v);
+}
+
+// ゲームステート
+let gs = {
+  qIndex:   0,
+  answered: [],
+  tapCount: 0,
+  hp:       3,
+  words:    [],
+  won:      false,
+  lost:     false
+};
+
+// ════════════════════════════════════════════════════════════
+//  ユーティリティ
+// ════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function flash(text) {
+  const el = document.getElementById('flash');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 700);
+}
+
+function prepareWords(qIdx) {
+  const q = QUESTIONS[qIdx];
+  return shuffle([...q.correct, ...q.decoys]);
+}
+
+function isMyTurn() {
+  return myRole === 'p1'
+    ? gs.tapCount % 2 === 0
+    : gs.tapCount % 2 === 1;
+}
+
+// ════════════════════════════════════════════════════════════
+//  接続フロー
+// ════════════════════════════════════════════════════════════
+function selectRole(role) {
+  if (!configReady) {
+    alert('Firebase の設定が未完了です。\nHTMLファイル内の firebaseConfig を入力してください。');
+    return;
+  }
+  myRole = role;
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+
+  if (role === 'p1') {
+    showScreen('s-host');
+    hostRoom();
+  } else {
+    showScreen('s-join');
+  }
+}
+
+// ── P1：ルーム作成 ──────────────────────────────
+function hostRoom() {
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  roomCode = code;
+  document.getElementById('code-display').textContent = code;
+  document.getElementById('host-status').textContent  = 'データベースに接続中...';
+
+  const roomRef = db.ref('rooms/' + code);
+  stateRef      = roomRef.child('state');
+
+  // 接続が切れたらルームを自動削除
+  roomRef.onDisconnect().remove();
+
+  // 初期ステートを書き込む
+  gs = {
+    qIndex: 0, answered: [], tapCount: 0,
+    hp: 3, words: prepareWords(0), won: false, lost: false
+  };
+  stateRef.set(gs)
+    .then(() => {
+      document.getElementById('host-status').textContent = 'P2の接続を待っています...';
+    })
+    .catch(e => {
+      document.getElementById('host-err').textContent = 'エラー: ' + e.message;
+    });
+
+  // P2 が join したら知らせてもらう
+  const joinedRef = roomRef.child('p2joined');
+  joinedRef.on('value', snap => {
+    if (snap.val() === true) {
+      joinedRef.off();
+      const dot = document.getElementById('host-dot');
+      dot.classList.add('green');
+      document.getElementById('host-status').textContent = '✅ P2が参加しました！';
+      setTimeout(() => {
+        showScreen('s-game');
+        renderGame();
+        listenState(); // P1 も state の変化を監視
+      }, 600);
+    }
+  });
+}
+
+// ── P2：ルーム参加 ──────────────────────────────
+function joinRoom() {
+  const code = document.getElementById('code-input').value.trim();
+  if (code.length !== 4) {
+    document.getElementById('join-err').textContent = '4桁のコードを入力してください';
+    return;
+  }
+
+  document.getElementById('join-btn').disabled = true;
+  document.getElementById('join-err').textContent = '';
+  document.getElementById('join-status-wrap').hidden = false;
+  document.getElementById('join-status').textContent = 'ルームを確認中...';
+
+  roomCode = code;
+  const roomRef = db.ref('rooms/' + code);
+  stateRef      = roomRef.child('state');
+
+  stateRef.once('value')
+    .then(snap => {
+      if (!snap.exists()) {
+        document.getElementById('join-err').textContent =
+          'ルームが見つかりません。コードを確認してください。';
+        document.getElementById('join-status-wrap').hidden = true;
+        document.getElementById('join-btn').disabled = false;
+        document.getElementById('retry-btn').style.display = 'block';
+        return;
+      }
+
+      // 初期ステートを受け取る
+      const raw = snap.val();
+      gs = {
+        ...raw,
+        answered: toArray(raw.answered),
+        words:    toArray(raw.words)
+      };
+
+      document.getElementById('join-dot').classList.add('green');
+      document.getElementById('join-status').textContent = '✅ 接続完了！';
+
+      // P1 に参加を通知
+      roomRef.child('p2joined').set(true);
+
+      setTimeout(() => {
+        showScreen('s-game');
+        renderGame();
+        listenState();
+      }, 400);
+    })
+    .catch(e => {
+      document.getElementById('join-err').textContent = 'エラー: ' + e.message;
+      document.getElementById('join-status-wrap').hidden = true;
+      document.getElementById('join-btn').disabled = false;
+      document.getElementById('retry-btn').style.display = 'block';
+    });
+}
+
+// ── Firebase の state 変化を監視（P1・P2 共通）──
+let ignoreNextUpdate = false;
+
+function listenState() {
+  stateRef.on('value', snap => {
+    if (!snap.exists()) return;
+    if (ignoreNextUpdate) { ignoreNextUpdate = false; return; }
+
+    const raw = snap.val();
+    gs = {
+      ...raw,
+      answered: toArray(raw.answered),
+      words:    toArray(raw.words)
+    };
+    renderGame();
+    if (gs.won)       showResult(true);
+    else if (gs.lost) showResult(false);
+  });
+}
+
+// Firebase に書き込む（自分の変更は echo を無視）
+function writeState() {
+  ignoreNextUpdate = true;
+  stateRef.set(gs);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ゲームロジック
+// ════════════════════════════════════════════════════════════
+function handleTap(idx) {
+  if (!isMyTurn() || gs.won || gs.lost) return;
+
+  const word = gs.words[idx];
+  const q    = QUESTIONS[gs.qIndex];
+  const next = q.correct[gs.answered.length];
+
+  gs.tapCount++;
+
+  if (word === next) {
+    gs.answered = [...gs.answered, word];
+    flash('✅');
+
+    if (gs.answered.length === q.correct.length) {
+      if (gs.qIndex + 1 < QUESTIONS.length) {
+        gs.qIndex++;
+        gs.answered = [];
+        gs.words    = prepareWords(gs.qIndex);
+      } else {
+        gs.won = true;
+      }
+    }
+  } else {
+    gs.hp = Math.max(0, gs.hp - 1);
+    flash('❌');
+    if (gs.hp === 0) gs.lost = true;
+  }
+
+  writeState();
+  renderGame();
+  if (gs.won)       showResult(true);
+  else if (gs.lost) showResult(false);
+}
+
+// ════════════════════════════════════════════════════════════
+//  描画
+// ════════════════════════════════════════════════════════════
+function renderGame() {
+  // HP
+  const h = gs.hp;
+  document.getElementById('hp-row').textContent =
+    '❤️'.repeat(h) + '🖤'.repeat(3 - h);
+
+  // Q バッジ
+  document.getElementById('q-badge').textContent =
+    `Q${gs.qIndex + 1} / ${QUESTIONS.length}`;
+
+  // ターン
+  const tb = document.getElementById('turn-badge');
+  if (isMyTurn() && !gs.won && !gs.lost) {
+    tb.textContent = '🟢 あなたのターン！';
+    tb.className   = 'turn-badge my-turn';
+  } else {
+    tb.textContent = '⏳ 相手のターン...';
+    tb.className   = 'turn-badge their-turn';
+  }
+
+  // 日本語
+  document.getElementById('ja-text').textContent = QUESTIONS[gs.qIndex].ja;
+
+  // 解答エリア
+  const ab = document.getElementById('answer-box');
+  ab.innerHTML = gs.answered.length === 0
+    ? '<span class="placeholder">ここに英文が完成します</span>'
+    : gs.answered.map(w => `<span class="answer-chip">${w}</span>`).join('');
+
+  // 単語ボタン
+  const usedSet = new Set(gs.answered);
+  const canTap  = isMyTurn() && !gs.won && !gs.lost;
+  document.getElementById('words-grid').innerHTML = gs.words
+    .map((w, i) => `<button class="word-btn"
+      onclick="handleTap(${i})"
+      ${usedSet.has(w) || !canTap ? 'disabled' : ''}
+    >${w}</button>`)
+    .join('');
+}
+
+function showResult(won) {
+  stateRef && stateRef.off(); // リスナー解除
+  document.getElementById('r-emoji').textContent = won ? '🎉' : '💀';
+  document.getElementById('r-title').textContent = won ? '2問クリア！！' : 'ゲームオーバー';
+  document.getElementById('r-msg').textContent   = won
+    ? `残りHP：${'❤️'.repeat(gs.hp)}　お見事！`
+    : 'HPがなくなりました…もう一度チャレンジ！';
+  showScreen('s-result');
+}
+</script>
+</body>
+</html>
