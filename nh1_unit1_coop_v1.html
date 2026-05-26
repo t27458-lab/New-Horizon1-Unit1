@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>英単語 並び替え協力ゲーム</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Screens ── */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 460px;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+    }
+    .screen.active { display: flex; }
+
+    h1 { font-size: 26px; font-weight: bold; color: #7dd3fc; line-height: 1.4; }
+    h2 { font-size: 20px; font-weight: bold; color: #7dd3fc; }
+    .sub { font-size: 14px; color: #64748b; }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      max-width: 280px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { opacity: 0.75; transform: scale(0.97); }
+    .btn-blue   { background: #3b82f6; color: white; }
+    .btn-slate  { background: #334155; color: #e2e8f0; }
+    .btn-green  { background: #22c55e; color: white; }
+
+    /* ── Code display / input ── */
+    .code-box {
+      background: #1e293b;
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 20px 48px;
+      font-size: 52px;
+      font-weight: bold;
+      letter-spacing: 10px;
+      color: #7dd3fc;
+    }
+    .code-input {
+      background: #1e293b;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 36px;
+      color: white;
+      text-align: center;
+      width: 180px;
+      letter-spacing: 8px;
+    }
+    .code-input:focus { outline: none; border-color: #60a5fa; }
+
+    .waiting {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      font-size: 15px;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      background: #f59e0b;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .err { color: #f87171; font-size: 14px; min-height: 18px; }
+
+    /* ── Game layout ── */
+    .game-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hp-row { font-size: 30px; letter-spacing: 4px; }
+    .q-badge {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .turn-badge {
+      width: 100%;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .my-turn   { background: #166534; color: #bbf7d0; }
+    .their-turn { background: #1e293b; color: #475569; }
+
+    .ja-box {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .ja-label { font-size: 11px; color: #64748b; margin-bottom: 6px; }
+    .ja-text  { font-size: 20px; line-height: 1.6; }
+
+    .answer-box {
+      width: 100%;
+      min-height: 62px;
+      background: #1e293b;
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+    .answer-chip {
+      background: #1d4ed8;
+      color: white;
+      border-radius: 8px;
+      padding: 7px 13px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .placeholder { color: #334155; font-size: 14px; }
+
+    .words-grid {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .word-btn {
+      background: #1e40af;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 19px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.12s, transform 0.1s;
+    }
+    .word-btn:active { opacity: 0.7; transform: scale(0.94); }
+    .word-btn:disabled { background: #1e293b; color: #2d3748; cursor: default; transform: none; }
+
+    /* ── Result ── */
+    .result-emoji { font-size: 80px; }
+
+    /* ── Flash feedback ── */
+    #flash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+    #flash.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ① ロール選択 -->
+<div class="screen active" id="s-role">
+  <h1>英単語<br>並び替え協力ゲーム</h1>
+  <p class="sub">NH1 Unit 1 — 2人で英文を完成させよう！</p>
+  <button class="btn btn-blue"  onclick="selectRole('p1')">P1 ： ルームを作る</button>
+  <button class="btn btn-slate" onclick="selectRole('p2')">P2 ： コードを入力</button>
+</div>
+
+<!-- ② P1：ルームコード表示 -->
+<div class="screen" id="s-host">
+  <h2>ルームコード</h2>
+  <div class="code-box" id="code-display">----</div>
+  <div class="waiting" id="host-waiting"><div class="dot"></div><span id="host-status">サーバーに接続中...</span></div>
+  <p class="err" id="host-err"></p>
+  <button class="btn btn-slate" style="font-size:14px;padding:10px;max-width:200px" onclick="location.reload()">やり直す</button>
+</div>
+
+<!-- ③ P2：コード入力 -->
+<div class="screen" id="s-join">
+  <h2>コードを入力</h2>
+  <input class="code-input" id="code-input" type="text"
+    inputmode="numeric" maxlength="4" placeholder="----">
+  <button class="btn btn-blue" id="join-btn" onclick="joinRoom()">接続する</button>
+  <p id="join-status" style="color:#94a3b8;font-size:14px;min-height:18px"></p>
+  <p class="err" id="join-err"></p>
+  <button class="btn btn-slate" style="font-size:14px;padding:10px;max-width:200px;display:none" id="retry-btn" onclick="location.reload()">やり直す</button>
+</div>
+
+<!-- ④ ゲーム画面 -->
+<div class="screen" id="s-game">
+  <div class="game-header">
+    <div class="hp-row" id="hp-row">❤️❤️❤️</div>
+    <div class="q-badge" id="q-badge">Q1 / 2</div>
+  </div>
+  <div class="turn-badge their-turn" id="turn-badge">---</div>
+  <div class="ja-box">
+    <div class="ja-label">日本語</div>
+    <div class="ja-text" id="ja-text"></div>
+  </div>
+  <div class="answer-box" id="answer-box">
+    <span class="placeholder">ここに英文が完成します</span>
+  </div>
+  <div class="words-grid" id="words-grid"></div>
+</div>
+
+<!-- ⑤ リザルト -->
+<div class="screen" id="s-result">
+  <div class="result-emoji" id="r-emoji">🎉</div>
+  <h2 id="r-title"></h2>
+  <p id="r-msg" class="sub"></p>
+  <button class="btn btn-green" onclick="location.reload()">もう一度</button>
+</div>
+
+<!-- フラッシュ -->
+<div id="flash"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  問題データ
+// ════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    ja: "私はアニメファンです。",
+    correct: ["I", "am", "an", "anime", "fan", "."],
+    decoys:  ["are", "the", "is"]
+  },
+  {
+    ja: "彼女は音楽が好きです。",
+    correct: ["She", "likes", "music", "."],
+    decoys:  ["He", "love", "her"]
+  }
+];
+
+// ════════════════════════════════════════════════════════════
+//  状態
+// ════════════════════════════════════════════════════════════
+let peer   = null;
+let conn   = null;
+let myRole = null;   // 'p1' | 'p2'
+
+// ゲームステート（PeerJS で同期）
+let gs = {
+  qIndex:   0,
+  answered: [],   // 正解済みの単語（順番通り）
+  tapCount: 0,    // 総タップ数（ターン判定用）
+  hp:       3,
+  words:    [],   // シャッフル済み単語リスト
+  won:      false,
+  lost:     false
+};
+
+// ════════════════════════════════════════════════════════════
+//  ユーティリティ
+// ════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function flash(text) {
+  const el = document.getElementById('flash');
+  el.textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 700);
+}
+
+function prepareWords(qIdx) {
+  const q = QUESTIONS[qIdx];
+  return shuffle([...q.correct, ...q.decoys]);
+}
+
+function isMyTurn() {
+  return myRole === 'p1'
+    ? gs.tapCount % 2 === 0
+    : gs.tapCount % 2 === 1;
+}
+
+// ════════════════════════════════════════════════════════════
+//  PeerJS 設定（ポート443 / HTTPS で学校ネットを通りやすく）
+// ════════════════════════════════════════════════════════════
+const PEER_CONFIG = {
+  host:   '0.peerjs.com',
+  port:   443,
+  path:   '/',
+  secure: true,
+  debug:  0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+//  接続
+// ════════════════════════════════════════════════════════════
+function selectRole(role) {
+  myRole = role;
+  if (role === 'p1') {
+    showScreen('s-host');
+    hostRoom();
+  } else {
+    showScreen('s-join');
+  }
+}
+
+function hostRoom() {
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  document.getElementById('code-display').textContent = code;
+  document.getElementById('host-status').textContent = 'サーバーに接続中...';
+
+  peer = new Peer('nhgame-' + code, PEER_CONFIG);
+
+  peer.on('open', () => {
+    document.getElementById('host-status').textContent = 'P2の接続を待っています...';
+  });
+
+  peer.on('error', e => {
+    const msgs = {
+      'unavailable-id':  'このコードは使用中です。やり直してください。',
+      'network':         'ネットワークエラー。Wi-Fiを確認してください。',
+      'server-error':    'サーバーエラー。少し待ってやり直してください。',
+      'socket-error':    '接続エラー。Wi-Fiを確認してください。',
+      'browser-incompatible': 'このブラウザは非対応です。Safariをお試しください。'
+    };
+    document.getElementById('host-err').textContent =
+      msgs[e.type] || ('エラー: ' + e.type);
+  });
+
+  peer.on('connection', c => {
+    conn = c;
+    document.getElementById('host-status').textContent = '✅ P2が接続しました！';
+    wireConn();
+    gs = {
+      qIndex: 0, answered: [], tapCount: 0,
+      hp: 3, words: prepareWords(0), won: false, lost: false
+    };
+    // P2 側の data listener が準備できるまで少し待つ
+    setTimeout(() => {
+      send({ type: 'start', state: gs });
+      showScreen('s-game');
+      renderGame();
+    }, 600);
+  });
+}
+
+let joinTimeout = null;
+
+function joinRoom() {
+  const code = document.getElementById('code-input').value.trim();
+  if (code.length !== 4) {
+    document.getElementById('join-err').textContent = '4桁のコードを入力してください';
+    return;
+  }
+  document.getElementById('join-err').textContent = '';
+  document.getElementById('join-status').textContent = '① サーバーに接続中...';
+  document.getElementById('join-btn').disabled = true;
+
+  // 15秒でタイムアウト
+  joinTimeout = setTimeout(() => {
+    document.getElementById('join-err').textContent =
+      '接続がタイムアウトしました。コードを確認してやり直してください。';
+    document.getElementById('join-status').textContent = '';
+    document.getElementById('retry-btn').style.display = 'block';
+    if (peer) peer.destroy();
+  }, 15000);
+
+  peer = new Peer(PEER_CONFIG);
+
+  peer.on('open', () => {
+    document.getElementById('join-status').textContent = '② P1のルームに接続中...';
+    conn = peer.connect('nhgame-' + code, { reliable: true });
+
+    wireConn();
+
+    conn.on('open', () => {
+      clearTimeout(joinTimeout);
+      document.getElementById('join-status').textContent = '✅ 接続完了！ゲームを待っています...';
+    });
+
+    conn.on('error', e => {
+      clearTimeout(joinTimeout);
+      document.getElementById('join-err').textContent =
+        'P1のルームが見つかりません。コードを確認してください。';
+      document.getElementById('join-status').textContent = '';
+      document.getElementById('retry-btn').style.display = 'block';
+    });
+  });
+
+  peer.on('error', e => {
+    clearTimeout(joinTimeout);
+    const msgs = {
+      'network':      'ネットワークエラー。Wi-Fiを確認してください。',
+      'server-error': 'サーバーエラー。少し待ってやり直してください。',
+      'peer-unavailable': 'P1のルームが見つかりません。コードを確認してください。'
+    };
+    document.getElementById('join-err').textContent =
+      msgs[e.type] || ('エラー: ' + e.type);
+    document.getElementById('join-status').textContent = '';
+    document.getElementById('retry-btn').style.display = 'block';
+  });
+}
+
+function wireConn() {
+  conn.on('data', msg => {
+    if (msg.type === 'start' || msg.type === 'sync') {
+      clearTimeout(joinTimeout);
+      gs = msg.state;
+      showScreen('s-game');
+      renderGame();
+      if (gs.won)       showResult(true);
+      else if (gs.lost) showResult(false);
+    }
+  });
+}
+
+function send(data) {
+  if (conn && conn.open) conn.send(data);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ゲームロジック
+// ════════════════════════════════════════════════════════════
+function handleTap(idx) {
+  if (!isMyTurn() || gs.won || gs.lost) return;
+
+  const word = gs.words[idx];
+  const q    = QUESTIONS[gs.qIndex];
+  const next = q.correct[gs.answered.length];
+
+  gs.tapCount++;
+
+  if (word === next) {
+    // 正解
+    gs.answered = [...gs.answered, word];
+    flash('✅');
+
+    if (gs.answered.length === q.correct.length) {
+      // 問題クリア
+      if (gs.qIndex + 1 < QUESTIONS.length) {
+        gs.qIndex++;
+        gs.answered = [];
+        gs.words = prepareWords(gs.qIndex);
+      } else {
+        gs.won = true;
+      }
+    }
+  } else {
+    // 不正解
+    gs.hp = Math.max(0, gs.hp - 1);
+    flash('❌');
+    if (gs.hp === 0) gs.lost = true;
+  }
+
+  send({ type: 'sync', state: gs });
+  renderGame();
+  if (gs.won)  showResult(true);
+  else if (gs.lost) showResult(false);
+}
+
+// ════════════════════════════════════════════════════════════
+//  描画
+// ════════════════════════════════════════════════════════════
+function renderGame() {
+  // HP
+  const h = gs.hp;
+  document.getElementById('hp-row').textContent =
+    '❤️'.repeat(h) + '🖤'.repeat(3 - h);
+
+  // Q バッジ
+  document.getElementById('q-badge').textContent =
+    `Q${gs.qIndex + 1} / ${QUESTIONS.length}`;
+
+  // ターン表示
+  const tb = document.getElementById('turn-badge');
+  if (isMyTurn() && !gs.won && !gs.lost) {
+    tb.textContent = '🟢 あなたのターン！';
+    tb.className   = 'turn-badge my-turn';
+  } else {
+    tb.textContent = '⏳ 相手のターン...';
+    tb.className   = 'turn-badge their-turn';
+  }
+
+  // 日本語
+  document.getElementById('ja-text').textContent = QUESTIONS[gs.qIndex].ja;
+
+  // 解答エリア
+  const ab = document.getElementById('answer-box');
+  if (gs.answered.length === 0) {
+    ab.innerHTML = '<span class="placeholder">ここに英文が完成します</span>';
+  } else {
+    ab.innerHTML = gs.answered
+      .map(w => `<span class="answer-chip">${w}</span>`)
+      .join('');
+  }
+
+  // 単語ボタン
+  const usedSet = new Set(gs.answered);
+  const myTurn  = isMyTurn() && !gs.won && !gs.lost;
+  document.getElementById('words-grid').innerHTML = gs.words
+    .map((w, i) => {
+      const used = usedSet.has(w);
+      return `<button class="word-btn"
+        onclick="handleTap(${i})"
+        ${used || !myTurn ? 'disabled' : ''}
+      >${w}</button>`;
+    }).join('');
+}
+
+function showResult(won) {
+  document.getElementById('r-emoji').textContent = won ? '🎉' : '💀';
+  document.getElementById('r-title').textContent = won ? '2問クリア！！' : 'ゲームオーバー';
+  document.getElementById('r-msg').textContent   = won
+    ? `残りHP：${'❤️'.repeat(gs.hp)}　お見事！`
+    : 'HPがなくなりました…もう一度チャレンジ！';
+  showScreen('s-result');
+}
+</script>
+</body>
+</html>
