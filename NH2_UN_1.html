@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>英語ミニゲーム道場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=RocknRoll+One&family=Yomogi&family=Fredoka+One&family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════
+   ROOT VARIABLES
+══════════════════════════════════════════════════ */
+:root{
+  --ink:#1a1a1a;
+  --paper:#FFF8F0;
+  --yellow:#FFD600;
+  --orange:#FF6B35;
+  --coral:#FF4444;
+  --mint:#2ECC71;
+  --sky:#3498DB;
+  --purple:#9B59B6;
+  --sh-sm:3px 3px 0 var(--ink);
+  --sh-md:4px 4px 0 var(--ink);
+  --sh-lg:6px 6px 0 var(--ink);
+  --r-org:12px 8px 14px 9px / 9px 14px 8px 12px;
+}
+
+/* ══════════════════════════════════════════════════
+   GLOBAL
+══════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+body{font-family:'RocknRoll One','Noto Sans JP',sans-serif;height:100vh;overflow:hidden;background:var(--paper);display:flex;align-items:center;justify-content:center;}
+.screen{display:none;width:100%;height:100vh;position:fixed;top:0;left:0;flex-direction:column;align-items:center;justify-content:center;}
+.screen.active{display:flex;}
+
+/* ══════════════════════════════════════════════════
+   TITLE
+══════════════════════════════════════════════════ */
+#sc-title{
+  background:linear-gradient(155deg,#FF6B35 0%,#FFD600 48%,#FF9500 100%);
+  text-align:center;padding:1.5rem 1.2rem;gap:.55rem;overflow-y:auto;
+}
+.title-stars{font-size:1.5rem;animation:starSpin 4s linear infinite;}
+@keyframes starSpin{from{opacity:.7}50%{opacity:1}to{opacity:.7}}
+
+.title-logo{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(2.4rem,9vw,4.5rem);
+  color:#fff;
+  -webkit-text-stroke:3px var(--ink);
+  paint-order:stroke fill;
+  text-shadow:5px 5px 0 rgba(0,0,0,.25);
+  animation:logoPulse 2.5s ease-in-out infinite;
+  line-height:1.15;
+}
+@keyframes logoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+.title-jp{font-family:'Yomogi',cursive;font-size:.88rem;color:rgba(0,0,0,.75);}
+.title-unit{
+  font-family:'RocknRoll One',cursive;font-size:.8rem;
+  background:#fff;color:var(--ink);
+  border:2.5px solid var(--ink);border-radius:20px;
+  padding:.2rem .9rem;display:inline-block;
+  box-shadow:var(--sh-sm);
+}
+.title-chips{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;}
+.chip{
+  padding:.3rem .7rem;border-radius:20px;
+  font-family:'RocknRoll One',cursive;font-size:.75rem;color:#fff;
+  border:2px solid rgba(0,0,0,.25);
+  animation:chipFloat 3s ease-in-out infinite;
+}
+.chip:nth-child(2){animation-delay:.4s}.chip:nth-child(3){animation-delay:.8s}.chip:nth-child(4){animation-delay:1.2s}
+.chip:nth-child(5){animation-delay:1.6s}.chip:nth-child(6){animation-delay:2s}.chip:nth-child(7){animation-delay:.3s}
+.chip:nth-child(8){animation-delay:.7s}.chip:nth-child(9){animation-delay:1.1s}.chip:nth-child(10){animation-delay:1.5s}
+.chip:nth-child(11){animation-delay:1.9s}
+@keyframes chipFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.c1{background:#1d4ed8}.c2{background:#6d28d9}.c3{background:#b91c1c}.c4{background:#065f46}.c5{background:#9d174d}
+.c6{background:#4338ca}.c7{background:#0369a1}.c8{background:#92400e}.c9{background:#065f46}.c10{background:#7c3aed}.c11{background:#166534}
+
+.title-info{
+  font-family:'Yomogi',cursive;font-size:.82rem;
+  color:rgba(0,0,0,.8);
+  background:rgba(255,255,255,.55);border:2px solid rgba(0,0,0,.18);
+  border-radius:14px;padding:.45rem .8rem;line-height:1.65;
+}
+.start-btn{
+  font-family:'RocknRoll One',cursive;font-size:1.8rem;
+  padding:.9rem 3.5rem;
+  background:#fff;border:3px solid var(--ink);border-radius:50px;
+  color:var(--ink);cursor:pointer;
+  box-shadow:var(--sh-lg);
+  transition:transform .12s,box-shadow .12s;letter-spacing:.05em;
+}
+.start-btn:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink);}
+
+/* ══════════════════════════════════════════════════
+   LEVEL SELECT
+══════════════════════════════════════════════════ */
+#sc-level{
+  background:linear-gradient(155deg,#FF6B35 0%,#FFD600 48%,#FF9500 100%);
+  text-align:center;padding:1.5rem 1.2rem;gap:.85rem;
+}
+.level-title{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(1.8rem,8vw,3rem);
+  color:#fff;
+  -webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;
+  text-shadow:4px 4px 0 rgba(0,0,0,.2);
+}
+.level-subtitle{
+  font-family:'Yomogi',cursive;font-size:.85rem;color:rgba(0,0,0,.75);
+  background:rgba(255,255,255,.5);border-radius:20px;padding:.2rem .9rem;
+}
+.level-cards{display:flex;flex-direction:column;gap:.8rem;width:100%;max-width:380px;}
+
+.level-card{
+  border:3px solid var(--ink);border-radius:var(--r-org);
+  padding:1rem 1.2rem;cursor:pointer;text-align:left;font-family:inherit;
+  transition:transform .12s,box-shadow .12s;
+  display:flex;align-items:center;gap:1rem;position:relative;
+  box-shadow:var(--sh-md);
+}
+.level-card:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink);}
+
+/* CLEAR MEDAL & SCORE */
+.level-medal{position:absolute;top:-10px;left:-8px;font-size:1.6rem;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.3));animation:medalPop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes medalPop{from{transform:scale(0) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.level-medal.gold{filter:drop-shadow(0 0 8px #FFD700) drop-shadow(2px 2px 0 rgba(0,0,0,.3));}
+.level-score-disp{display:flex;flex-direction:column;align-items:center;flex-shrink:0;opacity:0;transition:opacity .3s;}
+.level-score-disp.visible{opacity:1;}
+.level-score-pts{font-family:'RocknRoll One',cursive;font-size:1.3rem;color:#fff;line-height:1;text-shadow:2px 2px 0 rgba(0,0,0,.3);}
+.level-score-label{font-family:'Yomogi',cursive;font-size:.6rem;color:rgba(255,255,255,.9);font-weight:700;white-space:nowrap;}
+
+/* PERFECT */
+.level-card.perfect{
+  background:linear-gradient(135deg,#92400e,#d97706,#FFD700,#d97706,#92400e) !important;
+  background-size:200% 200% !important;
+  animation:goldShimmer 2.5s ease infinite !important;
+}
+@keyframes goldShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.level-card.easy  {background:linear-gradient(135deg,#27AE60,#2ECC71);}
+.level-card.medium{background:linear-gradient(135deg,#E67E22,#F39C12);}
+.level-card.hard  {background:linear-gradient(135deg,#C0392B,#E74C3C);}
+.level-icon{font-size:2.4rem;flex-shrink:0;}
+.level-info{flex:1;}
+.level-name{font-family:'RocknRoll One',cursive;font-size:1.4rem;color:#fff;-webkit-text-stroke:1px rgba(0,0,0,.35);paint-order:stroke fill;}
+.level-desc{font-family:'Yomogi',cursive;font-size:.78rem;color:rgba(255,255,255,.95);margin-top:.1rem;line-height:1.4;}
+.level-badge{background:rgba(255,255,255,.3);border:1.5px solid rgba(255,255,255,.5);border-radius:10px;padding:.15rem .5rem;font-family:'Yomogi',cursive;font-size:.7rem;color:#fff;margin-top:.3rem;display:inline-block;}
+
+.reset-btn{
+  margin-top:.25rem;background:rgba(255,255,255,.35);
+  border:2px solid rgba(0,0,0,.2);color:rgba(0,0,0,.6);
+  font-family:'Yomogi',cursive;font-size:.72rem;cursor:pointer;
+  padding:.3rem .9rem;border-radius:20px;transition:color .2s,background .2s;
+}
+.reset-btn:hover{color:rgba(180,0,0,.8);background:rgba(255,100,100,.2);}
+
+/* ══════════════════════════════════════════════════
+   COUNTDOWN
+══════════════════════════════════════════════════ */
+#sc-countdown{background:var(--yellow);}
+#cd-num{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(8rem,30vw,14rem);
+  color:#fff;
+  -webkit-text-stroke:8px var(--ink);paint-order:stroke fill;
+  text-shadow:8px 8px 0 rgba(0,0,0,.15);
+  animation:cdAnim 1s cubic-bezier(.34,1.56,.64,1);
+}
+#cd-go{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(4rem,15vw,8rem);
+  color:#fff;
+  -webkit-text-stroke:6px var(--ink);paint-order:stroke fill;
+  text-shadow:6px 6px 0 rgba(0,0,0,.15);
+  display:none;
+}
+@keyframes cdAnim{from{transform:scale(1.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ══════════════════════════════════════════════════
+   HUD
+══════════════════════════════════════════════════ */
+#hud{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:none;align-items:center;justify-content:space-between;
+  padding:.4rem .9rem;
+  background:rgba(18,10,5,.88);backdrop-filter:blur(6px);
+  min-height:46px;
+  border-bottom:2.5px solid rgba(255,215,0,.25);
+}
+#lives-disp{font-size:1.3rem;letter-spacing:2px;min-width:70px;}
+#prog-disp{font-family:'Yomogi',cursive;font-size:.72rem;color:rgba(255,255,255,.7);}
+#score-disp{font-family:'RocknRoll One',cursive;font-size:1.2rem;color:var(--yellow);min-width:70px;text-align:right;text-shadow:2px 2px 0 rgba(0,0,0,.4);}
+
+/* ══════════════════════════════════════════════════
+   FUSE TIMER
+══════════════════════════════════════════════════ */
+#fuse-wrap{
+  position:fixed;top:46px;left:0;right:0;height:32px;z-index:200;
+  display:none;align-items:center;padding:3px 10px;gap:7px;
+  background:rgba(18,10,5,.78);
+  border-bottom:2px solid rgba(255,255,255,.08);
+}
+#fuse-bomb{font-size:22px;flex-shrink:0;transition:transform .1s;cursor:default;}
+#fuse-bomb.warn{animation:bombWobble .25s ease-in-out infinite;}
+@keyframes bombWobble{0%,100%{transform:rotate(0) scale(1)}30%{transform:rotate(-18deg) scale(1.15)}70%{transform:rotate(18deg) scale(1.15)}}
+#fuse-track{flex:1;height:10px;background:rgba(255,255,255,.12);border-radius:5px;position:relative;overflow:visible;}
+#fuse-remaining{position:absolute;left:0;top:0;height:100%;border-radius:5px;transition:none;background:linear-gradient(90deg,#6b3a1f,#c2762b,#e8a54b);}
+#fuse-spark{position:absolute;top:50%;font-size:18px;transform:translate(-50%,-50%);animation:sparkle .12s ease-in-out infinite alternate;z-index:10;pointer-events:none;filter:drop-shadow(0 0 5px #ff8c00);}
+@keyframes sparkle{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-65%) scale(1.2)}}
+#fuse-timer-num{font-family:'RocknRoll One',cursive;font-size:.85rem;color:rgba(255,255,255,.85);min-width:26px;text-align:right;flex-shrink:0;}
+
+#combo-disp{
+  position:fixed;top:80px;right:.75rem;z-index:210;
+  font-family:'RocknRoll One',cursive;font-size:1.05rem;
+  color:#fff;
+  -webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill;
+  text-shadow:2px 2px 0 rgba(0,0,0,.3);
+  display:none;
+}
+
+/* ══════════════════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════════════════ */
+#sc-game{padding-top:80px;padding-bottom:env(safe-area-inset-bottom,0);justify-content:flex-start;}
+
+/* ─── Stage Backgrounds: bright & warm ─── */
+#sc-game.stage-0{
+  background-color:#87CEEB;
+  background-image:radial-gradient(circle,rgba(255,255,255,.55) 3px,transparent 3px);
+  background-size:32px 32px;
+  animation:bgDrift 4s linear infinite;
+}
+#sc-game.stage-1{
+  background-color:#FFE566;
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 16px,rgba(255,255,255,.38) 16px,rgba(255,255,255,.38) 32px);
+  animation:bgScrollDiag 2.5s linear infinite;
+}
+#sc-game.stage-2{
+  background-color:#FF8FAB;
+  background-image:
+    linear-gradient(rgba(255,255,255,.32) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.32) 1px,transparent 1px);
+  background-size:24px 24px;
+  animation:bgGridMove 1.5s linear infinite;
+}
+#sc-game.stage-3{
+  background-color:#7DE89A;
+  background-image:repeating-linear-gradient(-60deg,transparent,transparent 8px,rgba(255,255,255,.38) 8px,rgba(255,255,255,.38) 16px);
+  animation:bgStripeFast 0.6s linear infinite;
+}
+@keyframes bgDrift     {from{background-position:0 0}to{background-position:32px 32px}}
+@keyframes bgScrollDiag{from{background-position:0 0}to{background-position:46px 46px}}
+@keyframes bgGridMove  {from{background-position:0 0}to{background-position:24px 24px}}
+@keyframes bgStripeFast{from{background-position:0 0}to{background-position:32px 0}}
+
+/* ─── CMD ZONE ─── */
+#cmd-zone{
+  width:100%;text-align:center;
+  padding:.45rem 1rem .25rem;flex-shrink:0;
+  background:rgba(18,10,5,.88);
+  border-bottom:2px solid rgba(255,215,0,.2);
+}
+#cmd-text{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(2rem,8vw,3.8rem);
+  color:var(--yellow);
+  -webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;
+  text-shadow:3px 3px 0 rgba(0,0,0,.3);
+  line-height:1;animation:cmdPop .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cmdPop{from{transform:scale(.3) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+#cmd-en{font-family:'Yomogi',cursive;font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.05rem;}
+
+#content-zone{width:100%;max-width:680px;padding:.35rem .9rem;flex:1;display:flex;flex-direction:column;justify-content:center;overflow:hidden;gap:.45rem;}
+
+/* ─── Q BOX ─── */
+#q-box{
+  background:rgba(255,255,255,.93);
+  border:2.5px solid var(--ink);border-radius:var(--r-org);
+  box-shadow:var(--sh-sm);
+  padding:.65rem .9rem;color:var(--ink);
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(.88rem,3.2vw,1.1rem);
+  line-height:1.55;white-space:pre-wrap;
+}
+#q-hint{font-family:'Yomogi',cursive;font-size:.8rem;color:rgba(0,0,0,.72);padding:0 .2rem;}
+
+/* ─── CHOICE ─── */
+#choices-grid{display:grid;gap:.45rem;}
+.cbtn{
+  width:100%;padding:.75rem .9rem;
+  background:rgba(255,255,255,.95);
+  border:2.5px solid var(--ink);border-radius:var(--r-org);
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(.85rem,2.8vw,1rem);
+  color:var(--ink);cursor:pointer;text-align:left;line-height:1.35;
+  box-shadow:var(--sh-sm);
+  transition:transform .1s,box-shadow .1s;
+}
+.cbtn:active:not([disabled]){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+.cbtn.ok{background:#B8F7B8;border-color:#1B7A1B;box-shadow:3px 3px 0 #1B7A1B;color:#1B5E20;}
+.cbtn.ng{background:#FFB3B3;border-color:#C62828;box-shadow:3px 3px 0 #C62828;color:#7f1d1d;}
+.cbtn[disabled]{cursor:default;}
+
+/* ─── TF ─── */
+#tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.tfbtn{
+  padding:1.2rem .5rem;
+  border:3px solid var(--ink);
+  border-radius:20px 14px 22px 16px / 16px 22px 14px 20px;
+  font-family:'RocknRoll One',cursive;font-size:2.8rem;
+  text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.92);color:var(--ink);
+  box-shadow:var(--sh-md);
+  transition:transform .1s,box-shadow .1s;
+}
+.tfbtn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink);}
+.tfbtn.ok{background:#B8F7B8;border-color:#1B7A1B;box-shadow:var(--sh-sm);}
+.tfbtn.ng{background:#FFB3B3;border-color:#C62828;box-shadow:var(--sh-sm);}
+
+/* ─── ARRANGE ─── */
+#arr-zone{display:flex;flex-direction:column;gap:.45rem;}
+#arr-ans{display:flex;flex-wrap:wrap;gap:.4rem;min-height:44px;padding:.45rem;background:rgba(255,255,255,.72);border:2.5px dashed var(--ink);border-radius:12px;align-content:flex-start;}
+#arr-pool{display:flex;flex-wrap:wrap;gap:.4rem;}
+.wbtn{
+  padding:.4rem .75rem;
+  background:rgba(255,255,255,.95);border:2px solid var(--ink);
+  border-radius:8px 6px 10px 7px / 7px 10px 6px 8px;
+  font-family:'RocknRoll One',cursive;font-size:.88rem;color:var(--ink);
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.wbtn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
+.wbtn.used{opacity:.2;pointer-events:none;}
+.wbtn.aw{background:#BFDBFE;border-color:#1D4ED8;box-shadow:2px 2px 0 #1D4ED8;color:#1E40AF;}
+#arr-check{
+  padding:.55rem 1.8rem;
+  background:var(--yellow);border:2.5px solid var(--ink);border-radius:50px;
+  font-family:'RocknRoll One',cursive;font-size:.9rem;color:var(--ink);
+  cursor:pointer;align-self:center;
+  box-shadow:var(--sh-sm);transition:transform .1s,box-shadow .1s;
+}
+#arr-check:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+#arr-check:disabled{opacity:.35;cursor:default;}
+
+/* ─── ERROR ─── */
+#err-zone{display:flex;flex-direction:column;gap:.5rem;}
+#err-sentence{
+  background:rgba(255,255,255,.92);border:2px solid var(--ink);
+  border-radius:12px;box-shadow:var(--sh-sm);
+  padding:.55rem .9rem;color:var(--ink);
+  font-family:'RocknRoll One',cursive;font-size:.95rem;line-height:1.55;
+}
+#err-btns{display:flex;flex-wrap:wrap;gap:.45rem;justify-content:center;}
+.errbtn{
+  padding:.5rem 1rem;
+  background:rgba(255,255,255,.95);border:2px solid var(--ink);
+  border-radius:8px 6px 10px 7px / 7px 10px 6px 8px;
+  font-family:'RocknRoll One',cursive;font-size:.95rem;color:var(--ink);
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);
+  transition:transform .1s,box-shadow .1s;
+}
+.errbtn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
+.errbtn.ok{background:#B8F7B8;border-color:#1B7A1B;box-shadow:2px 2px 0 #1B7A1B;color:#1B5E20;}
+.errbtn.ng{background:#FFB3B3;border-color:#C62828;box-shadow:2px 2px 0 #C62828;color:#7f1d1d;}
+
+/* ─── TYPING ─── */
+#typ-zone{display:flex;flex-direction:column;gap:.5rem;}
+.typ-input{
+  width:100%;padding:.75rem .9rem;
+  border:2.5px solid var(--ink);
+  border-radius:10px 8px 12px 9px / 9px 12px 8px 10px;
+  font-family:'RocknRoll One',cursive;font-size:1rem;
+  background:rgba(255,255,255,.95);color:var(--ink);outline:none;
+  box-shadow:var(--sh-sm);
+}
+.typ-input.ok{border-color:#1B7A1B;background:#B8F7B8;}
+.typ-input.ng{border-color:#C62828;background:#FFB3B3;}
+.typ-submit{
+  padding:.65rem;background:var(--yellow);
+  border:2.5px solid var(--ink);border-radius:12px;
+  font-family:'RocknRoll One',cursive;font-size:.95rem;color:var(--ink);
+  cursor:pointer;box-shadow:var(--sh-sm);
+  transition:transform .1s,box-shadow .1s;
+}
+.typ-submit:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+
+/* ─── SPELL ─── */
+#spell-zone{display:flex;flex-direction:column;gap:.45rem;}
+#spell-word-display{
+  font-family:'RocknRoll One',cursive;font-size:1.6rem;
+  color:var(--ink);text-align:center;letter-spacing:.4em;
+  min-height:2rem;text-transform:uppercase;
+}
+#spell-ans{display:flex;flex-wrap:wrap;gap:.35rem;min-height:44px;padding:.45rem;background:rgba(255,255,255,.72);border:2.5px dashed var(--ink);border-radius:12px;align-content:flex-start;justify-content:center;}
+#spell-pool{display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;}
+.lbtn{
+  width:38px;height:38px;
+  background:rgba(255,255,255,.95);border:2px solid var(--ink);
+  border-radius:8px 6px 10px 7px / 7px 10px 6px 8px;
+  font-family:'RocknRoll One',cursive;font-size:1.1rem;color:var(--ink);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .1s,box-shadow .1s;text-transform:uppercase;
+}
+.lbtn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
+.lbtn.used{opacity:.15;pointer-events:none;}
+.lbtn.al{background:#BFDBFE;border-color:#1D4ED8;box-shadow:2px 2px 0 #1D4ED8;color:#1E40AF;}
+#spell-check{
+  padding:.5rem 1.5rem;
+  background:var(--yellow);border:2.5px solid var(--ink);border-radius:50px;
+  font-family:'RocknRoll One',cursive;font-size:.9rem;color:var(--ink);
+  cursor:pointer;align-self:center;
+  box-shadow:var(--sh-sm);transition:transform .1s,box-shadow .1s;
+}
+#spell-check:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+#spell-check:disabled{opacity:.35;cursor:default;}
+
+/* ─── ERASE ─── */
+#erase-zone{display:flex;flex-direction:column;gap:.5rem;}
+#erase-progress{font-family:'Yomogi',cursive;font-size:.8rem;color:var(--ink);font-weight:700;text-align:center;}
+#erase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;}
+.erasebtn{
+  padding:.6rem .3rem;
+  background:rgba(255,255,255,.95);border:2px solid var(--ink);
+  border-radius:10px 8px 12px 9px / 9px 12px 8px 10px;
+  font-family:'RocknRoll One',cursive;font-size:.85rem;color:var(--ink);
+  cursor:pointer;text-align:center;
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .12s,box-shadow .12s;
+}
+.erasebtn:active:not([disabled]){transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
+.erasebtn.ok{background:#B8F7B8;border-color:#1B7A1B;box-shadow:2px 2px 0 #1B7A1B;color:#1B5E20;pointer-events:none;}
+.erasebtn.ng{background:#FFB3B3;border-color:#C62828;animation:shake .3s ease-out;}
+.erasebtn[disabled]{cursor:default;}
+
+/* ─── MATCH ─── */
+#match-zone{display:flex;flex-direction:column;gap:.4rem;}
+#match-info{font-family:'Yomogi',cursive;font-size:.8rem;color:var(--ink);font-weight:700;text-align:center;}
+#match-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
+.mbtn{
+  padding:.55rem .4rem;
+  background:rgba(255,255,255,.95);border:2px solid var(--ink);
+  border-radius:10px 8px 12px 9px / 9px 12px 8px 10px;
+  font-family:'RocknRoll One',cursive;font-size:.82rem;color:var(--ink);
+  cursor:pointer;text-align:center;
+  box-shadow:2px 2px 0 var(--ink);
+  transition:transform .12s,box-shadow .15s,opacity .3s;
+  line-height:1.3;min-height:44px;display:flex;align-items:center;justify-content:center;
+}
+.mbtn:active:not([disabled]){transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);}
+.mbtn.selected{background:#BFDBFE;border-color:#1D4ED8;box-shadow:2px 2px 0 #1D4ED8;color:#1E40AF;}
+.mbtn.matched{opacity:.1;pointer-events:none;transform:scale(.85);}
+.mbtn.flash-ok{background:#B8F7B8;border-color:#1B7A1B;box-shadow:2px 2px 0 #1B7A1B;color:#1B5E20;}
+.mbtn.flash-ng{background:#FFB3B3;border-color:#C62828;box-shadow:2px 2px 0 #C62828;color:#7f1d1d;}
+.mbtn[disabled]{cursor:default;}
+
+/* ─── TOUCH ─── */
+#touch-zone{display:flex;flex-direction:column;gap:.4rem;align-items:center;}
+#touch-target-label{
+  font-family:'Yomogi',cursive;font-size:.82rem;color:var(--ink);font-weight:700;text-align:center;
+  background:rgba(255,255,255,.7);border:2px solid rgba(0,0,0,.2);border-radius:20px;padding:.2rem .75rem;
+}
+#touch-stage{width:100%;display:flex;align-items:center;justify-content:center;min-height:80px;position:relative;}
+#touch-current{
+  font-family:'RocknRoll One',cursive;font-size:2rem;color:var(--ink);
+  background:rgba(255,255,255,.93);border:3px solid var(--ink);
+  border-radius:var(--r-org);padding:.6rem 2rem;text-align:center;
+  animation:touchWordIn .25s cubic-bezier(.34,1.56,.64,1);
+  cursor:pointer;box-shadow:var(--sh-md);
+  transition:transform .1s,box-shadow .1s;
+}
+#touch-current:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink);}
+.touch-enter{animation:touchWordIn .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes touchWordIn{from{transform:scale(.4) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+#touch-skip{
+  padding:.35rem 1rem;
+  background:rgba(255,255,255,.65);border:2px solid rgba(0,0,0,.25);border-radius:20px;
+  font-family:'Yomogi',cursive;font-size:.78rem;color:rgba(0,0,0,.7);cursor:pointer;margin-top:.2rem;
+}
+#touch-progress{font-family:'Yomogi',cursive;font-size:.8rem;color:var(--ink);font-weight:700;}
+
+/* ─── STOP ─── */
+#stop-zone{display:flex;flex-direction:column;gap:.55rem;align-items:center;width:100%;}
+#stop-window{
+  width:100%;height:66px;
+  background:rgba(255,255,255,.88);border:3px solid var(--ink);
+  border-radius:14px;box-shadow:var(--sh-md);
+  overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;
+}
+#stop-current{font-family:'RocknRoll One',cursive;font-size:1.9rem;color:var(--ink);letter-spacing:.04em;transition:none;}
+.stop-slide-in{animation:stopIn .18s ease-out;}
+.stop-slide-out{animation:stopOut .18s ease-in forwards;}
+@keyframes stopIn{from{transform:translateY(44px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes stopOut{from{transform:translateY(0);opacity:1}to{transform:translateY(-44px);opacity:0}}
+#stop-tap-btn{
+  font-family:'RocknRoll One',cursive;font-size:1.8rem;
+  padding:.85rem 3.5rem;
+  background:var(--coral);border:3px solid var(--ink);border-radius:50px;
+  color:#fff;cursor:pointer;
+  box-shadow:var(--sh-lg);
+  transition:transform .1s,box-shadow .1s;
+  -webkit-text-stroke:1px rgba(0,0,0,.35);paint-order:stroke fill;
+}
+#stop-tap-btn:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink);}
+#stop-hint{font-family:'Yomogi',cursive;font-size:.78rem;color:rgba(0,0,0,.75);font-weight:700;}
+
+/* ══════════════════════════════════════════════════
+   RESULT
+══════════════════════════════════════════════════ */
+#sc-result{
+  background:linear-gradient(155deg,#FF6B35 0%,#FFD600 48%,#FF9500 100%);
+  padding:2rem 1.5rem;gap:.55rem;overflow-y:auto;text-align:center;
+}
+.res-title{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(2rem,8vw,3.5rem);color:#fff;
+  -webkit-text-stroke:3px var(--ink);paint-order:stroke fill;
+  text-shadow:5px 5px 0 rgba(0,0,0,.2);
+}
+.res-rank{font-size:3.5rem;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.2));}
+.res-score{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(4rem,16vw,7rem);
+  color:#fff;
+  -webkit-text-stroke:4px var(--ink);paint-order:stroke fill;
+  text-shadow:6px 6px 0 rgba(0,0,0,.2);
+  line-height:1;
+}
+.res-denom{font-family:'Yomogi',cursive;font-size:1.2rem;color:rgba(0,0,0,.75);font-weight:700;}
+.res-pct{
+  font-family:'RocknRoll One',cursive;font-size:1.6rem;color:var(--ink);
+  background:rgba(255,255,255,.55);border:2.5px solid rgba(0,0,0,.25);
+  border-radius:20px;padding:.1rem .85rem;display:inline-block;
+  box-shadow:var(--sh-sm);
+}
+.res-msg{
+  font-family:'Yomogi',cursive;font-size:.95rem;color:rgba(0,0,0,.85);
+  background:rgba(255,255,255,.55);border:2px solid rgba(0,0,0,.2);border-radius:12px;
+  padding:.45rem .85rem;line-height:1.65;
+}
+.res-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;max-width:420px;margin:0 auto;}
+.stat-box{
+  background:rgba(255,255,255,.55);border:2.5px solid rgba(0,0,0,.25);
+  border-radius:12px;padding:.7rem .4rem;box-shadow:2px 2px 0 rgba(0,0,0,.18);
+}
+.stat-n{font-family:'RocknRoll One',cursive;font-size:1.7rem;color:var(--ink);display:block;}
+.stat-l{font-family:'Yomogi',cursive;font-size:.7rem;color:rgba(0,0,0,.75);font-weight:700;}
+.play-again{
+  font-family:'RocknRoll One',cursive;font-size:1.3rem;
+  padding:.85rem 3rem;
+  background:#fff;border:3px solid var(--ink);border-radius:50px;
+  color:var(--ink);cursor:pointer;
+  box-shadow:var(--sh-md);
+  transition:transform .12s,box-shadow .12s;
+}
+.play-again:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink);}
+#play-again-bonus{background:var(--coral);color:#fff;-webkit-text-stroke:1px rgba(0,0,0,.3);paint-order:stroke fill;}
+#play-again{font-size:1rem;background:rgba(0,0,0,.25);color:#fff;border-color:rgba(255,255,255,.55);box-shadow:none;}
+
+/* ══════════════════════════════════════════════════
+   WARIO COMMAND SPLASH ★ 新規
+══════════════════════════════════════════════════ */
+#wario-splash{
+  position:fixed;inset:0;z-index:700;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;gap:.4rem;
+}
+#wario-splash.active{animation:warioFade .68s ease-out forwards;}
+@keyframes warioFade{
+  0%  {opacity:0;}
+  10% {opacity:1;}
+  62% {opacity:1;}
+  100%{opacity:0;}
+}
+#wario-splash-cmd{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(4.5rem,22vw,11rem);
+  color:#fff;
+  -webkit-text-stroke:6px var(--ink);paint-order:stroke fill;
+  text-shadow:8px 8px 0 rgba(0,0,0,.2);
+  animation:warioBounce .68s cubic-bezier(.34,1.56,.64,1) both;
+  line-height:1;text-align:center;
+}
+@keyframes warioBounce{
+  0%  {transform:scale(.06) rotate(-10deg);opacity:0;}
+  42% {transform:scale(1.22) rotate(4deg); opacity:1;}
+  65% {transform:scale(.94) rotate(-2deg);}
+  82% {transform:scale(1.05) rotate(1deg);}
+  100%{transform:scale(1) rotate(0);}
+}
+#wario-splash-en{
+  font-family:'Yomogi',cursive;
+  font-size:clamp(.9rem,3.5vw,1.6rem);
+  color:rgba(255,255,255,.88);
+  font-weight:700;letter-spacing:.12em;
+  text-shadow:2px 2px 0 rgba(0,0,0,.3);
+}
+
+/* ══════════════════════════════════════════════════
+   FEEDBACK OVERLAY
+══════════════════════════════════════════════════ */
+#feedback-overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;pointer-events:none;opacity:0;transition:opacity .15s;gap:.5rem;}
+#feedback-overlay.show{opacity:1;}
+#fb-text{
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(5rem,22vw,10rem);
+  color:#fff;
+  -webkit-text-stroke:5px var(--ink);paint-order:stroke fill;
+  text-shadow:6px 6px 0 rgba(0,0,0,.2);
+  animation:fbPop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes fbPop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+#fb-ans{
+  font-family:'Yomogi',cursive;font-size:.9rem;color:#fff;
+  background:rgba(0,0,0,.65);border:2px solid rgba(255,255,255,.3);
+  border-radius:10px;padding:.4rem 1rem;font-weight:700;
+  max-width:85%;text-align:center;
+}
+#flash-overlay{position:fixed;inset:0;pointer-events:none;z-index:400;opacity:0;}
+
+/* ══════════════════════════════════════════════════
+   STAGE SPLASH
+══════════════════════════════════════════════════ */
+#stage-splash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:600;background:rgba(0,0,0,.8);}
+#stage-splash.show{display:flex;animation:stageFadeIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes stageFadeIn{from{opacity:0;transform:scale(.55)}60%{transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+#stage-inner{
+  text-align:center;
+  background:#fff;border:5px solid var(--ink);
+  border-radius:24px;padding:2rem 3.5rem;
+  box-shadow:8px 8px 0 var(--ink);
+}
+#stage-lbl{
+  font-family:'RocknRoll One',cursive;font-size:.95rem;
+  color:var(--ink);letter-spacing:.3em;
+}
+#stage-num{
+  font-family:'RocknRoll One',cursive;font-size:5.5rem;
+  color:var(--ink);line-height:1;
+  display:inline-block;
+  background:var(--yellow);padding:.05rem .4rem;border-radius:8px;
+  animation:stageNumSpin .8s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes stageNumSpin{
+  0%  {transform:scale(.05) rotate(-360deg);opacity:0}
+  55% {transform:scale(1.3)  rotate(14deg); opacity:1}
+  75% {transform:scale(.95)  rotate(-5deg); opacity:1}
+  88% {transform:scale(1.04) rotate(2deg);  opacity:1}
+  100%{transform:scale(1)    rotate(0);     opacity:1}
+}
+#stage-name{font-family:'Yomogi',cursive;font-size:1.1rem;color:var(--ink);margin-top:.5rem;}
+
+/* ══════════════════════════════════════════════════
+   EFFECTS & MISC
+══════════════════════════════════════════════════ */
+#miss-x-flash{position:fixed;inset:0;pointer-events:none;z-index:420;opacity:0;background:linear-gradient(135deg,transparent 41%,rgba(210,20,20,.88) 46%,rgba(210,20,20,.88) 54%,transparent 59%),linear-gradient(45deg,transparent 41%,rgba(210,20,20,.88) 46%,rgba(210,20,20,.88) 54%,transparent 59%);}
+#miss-x-flash.active{animation:missXFlash .6s ease-out forwards;}
+@keyframes missXFlash{0%{opacity:1}50%{opacity:.55}100%{opacity:0}}
+
+#rainbow-aura{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:0;transition:opacity .6s;background:linear-gradient(135deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#8b00ff,#ff0000);background-size:600% 600%;}
+#rainbow-aura.active{opacity:.2;animation:rainbowShift 2s linear infinite;}
+@keyframes rainbowShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+#explosion-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;display:none;align-items:center;justify-content:center;}
+#explosion-wrap.booming{display:flex;animation:boomFlash .7s ease-out forwards;}
+@keyframes boomFlash{0%{background:rgba(0,0,0,0)}15%{background:rgba(255,100,0,.65)}100%{background:rgba(0,0,0,0)}}
+#explosion-emoji{font-size:5rem;animation:boomPop .5s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes boomPop{from{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.3) rotate(8deg);opacity:1}to{transform:scale(1) rotate(0deg);opacity:.7}}
+
+#type-splash{position:fixed;inset:0;pointer-events:none;z-index:450;display:flex;align-items:center;justify-content:center;opacity:0;}
+#type-splash.active{animation:typeSplash .65s ease-out forwards;}
+@keyframes typeSplash{0%{opacity:0;transform:scale(.3)}40%{opacity:1;transform:scale(1.1)}80%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.4)}}
+#type-splash-icon{font-size:5rem;filter:drop-shadow(0 0 18px rgba(255,255,150,.9));}
+
+.bullet-fx{position:fixed;pointer-events:none;z-index:800;font-size:1.6rem;animation:bulletPop .4s ease-out forwards;}
+@keyframes bulletPop{0%{opacity:1;transform:scale(.5)}40%{opacity:1;transform:scale(1.6)}100%{opacity:0;transform:scale(2.5)}}
+.magnet-fx{position:fixed;pointer-events:none;z-index:800;font-size:2rem;animation:magnetPull .5s ease-in-out forwards;}
+@keyframes magnetPull{0%{opacity:1;transform:scale(1) rotate(-20deg)}50%{transform:scale(1.4) rotate(15deg)}100%{opacity:0;transform:scale(.3) rotate(0)}}
+
+.shake{animation:shake .4s ease-out;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+.particle{position:fixed;pointer-events:none;z-index:800;font-size:1.3rem;animation:pFly .7s ease-out forwards;}
+@keyframes pFly{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+
+#timer-countdown{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:350;pointer-events:none;
+  font-family:'RocknRoll One',cursive;
+  font-size:clamp(7rem,30vw,14rem);
+  color:var(--coral);
+  -webkit-text-stroke:6px var(--ink);paint-order:stroke fill;
+  text-shadow:6px 6px 0 rgba(0,0,0,.2);
+  opacity:0;
+}
+#timer-countdown.pop{animation:timerCountPop .9s ease-out forwards;}
+@keyframes timerCountPop{0%{opacity:1;transform:scale(2.3)}35%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.55)}}
+
+#vignette-overlay{position:fixed;inset:0;pointer-events:none;z-index:100;background:radial-gradient(ellipse at center,transparent 48%,rgba(220,0,0,.8) 100%);opacity:0;}
+#vignette-overlay.blink{animation:vignetteBlink .42s ease-in-out infinite alternate;}
+@keyframes vignetteBlink{from{opacity:.12}to{opacity:.88}}
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="sc-title" class="screen active">
+  <div class="title-stars" id="title-stars">✈️ 🎮 ✈️</div>
+  <div class="title-logo">英語ミニゲーム<br>道　場</div>
+  <div class="title-jp" id="title-jp"></div>
+  <div class="title-unit" id="title-unit"></div>
+  <div class="title-chips" id="title-chips"></div>
+  <div class="title-info">ライフ ❤️❤️❤️　スピードアップ4ステージ<br>導火線が燃え尽きる前に答えろ！💣</div>
+  <button class="start-btn" id="start-btn">▶ レベルを選ぶ！</button>
+</div>
+
+<!-- LEVEL SELECT -->
+<div id="sc-level" class="screen">
+  <div class="level-title">⚔️ レベル選択</div>
+  <div class="level-subtitle">30問 · 導火線が燃え尽きる前に答えろ！💣</div>
+  <div class="level-cards">
+    <button class="level-card easy" id="btn-easy">
+      <div class="level-icon">🌱</div>
+      <div class="level-info">
+        <div class="level-name">初級編</div>
+        <div class="level-desc" id="easy-desc"></div>
+        <span class="level-badge">⏱ ゆっくり目 · 30問</span>
+      </div>
+      <div class="level-score-disp" id="score-disp-easy">
+        <span class="level-score-pts" id="score-pts-easy">--</span>
+        <span class="level-score-label">ベスト正解</span>
+      </div>
+    </button>
+    <button class="level-card medium" id="btn-medium">
+      <div class="level-icon">🔥</div>
+      <div class="level-info">
+        <div class="level-name">中級編</div>
+        <div class="level-desc" id="medium-desc"></div>
+        <span class="level-badge">⏱ 標準スピード · 30問</span>
+      </div>
+      <div class="level-score-disp" id="score-disp-medium">
+        <span class="level-score-pts" id="score-pts-medium">--</span>
+        <span class="level-score-label">ベスト正解</span>
+      </div>
+    </button>
+    <button class="level-card hard" id="btn-hard">
+      <div class="level-icon">💥</div>
+      <div class="level-info">
+        <div class="level-name">上級編</div>
+        <div class="level-desc" id="hard-desc"></div>
+        <span class="level-badge">⏱ スピード勝負 · 30問</span>
+      </div>
+      <div class="level-score-disp" id="score-disp-hard">
+        <span class="level-score-pts" id="score-pts-hard">--</span>
+        <span class="level-score-label">ベスト正解</span>
+      </div>
+    </button>
+    <button class="reset-btn" id="btn-reset">🗑 記録をリセット</button>
+  </div>
+</div>
+
+<!-- COUNTDOWN -->
+<div id="sc-countdown" class="screen">
+  <div id="cd-num">3</div>
+  <div id="cd-go">GO！</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="lives-disp">❤️❤️❤️</div>
+  <div id="prog-disp">1 / 30</div>
+  <div id="score-disp">0</div>
+</div>
+
+<!-- FUSE TIMER -->
+<div id="fuse-wrap">
+  <div id="fuse-bomb">💣</div>
+  <div id="fuse-track">
+    <div id="fuse-remaining"></div>
+    <div id="fuse-spark">🔥</div>
+  </div>
+  <div id="fuse-timer-num">--</div>
+</div>
+
+<div id="combo-disp"></div>
+
+<!-- GAME -->
+<div id="sc-game" class="screen">
+  <div id="cmd-zone">
+    <div id="cmd-text">選べ！</div>
+    <div id="cmd-en">CHOOSE!</div>
+  </div>
+  <div id="content-zone">
+    <div id="q-box"></div>
+    <div id="q-hint"></div>
+
+    <!-- CHOICE -->
+    <div id="choices-grid"></div>
+
+    <!-- TF -->
+    <div id="tf-grid" style="display:none">
+      <button class="tfbtn" id="tf-true">⭕</button>
+      <button class="tfbtn" id="tf-false">❌</button>
+    </div>
+
+    <!-- ARRANGE -->
+    <div id="arr-zone" style="display:none">
+      <div id="arr-ans"></div>
+      <div id="arr-pool"></div>
+      <button id="arr-check" disabled>確認 ✓</button>
+    </div>
+
+    <!-- ERROR -->
+    <div id="err-zone" style="display:none">
+      <div id="err-sentence"></div>
+      <div id="err-btns"></div>
+    </div>
+
+    <!-- TYPING -->
+    <div id="typ-zone" style="display:none">
+      <input class="typ-input" id="typ-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="英語で入力してください…">
+      <button class="typ-submit" id="typ-submit">答える ✓</button>
+    </div>
+
+    <!-- SPELL -->
+    <div id="spell-zone" style="display:none">
+      <div id="spell-word-display">_ _ _ _ _</div>
+      <div id="spell-ans"></div>
+      <div id="spell-pool"></div>
+      <button id="spell-check" disabled>確認 ✓</button>
+    </div>
+
+    <!-- ERASE -->
+    <div id="erase-zone" style="display:none">
+      <div id="erase-progress"></div>
+      <div id="erase-grid"></div>
+    </div>
+
+    <!-- MATCH -->
+    <div id="match-zone" style="display:none">
+      <div id="match-info"></div>
+      <div id="match-grid"></div>
+    </div>
+
+    <!-- TOUCH -->
+    <div id="touch-zone" style="display:none">
+      <div id="touch-target-label"></div>
+      <div id="touch-stage">
+        <div id="touch-current"></div>
+      </div>
+      <div id="touch-progress"></div>
+      <button id="touch-skip">スキップ ▶</button>
+    </div>
+
+    <!-- STOP -->
+    <div id="stop-zone" style="display:none">
+      <div id="stop-window"><div id="stop-current">---</div></div>
+      <button id="stop-tap-btn">🛑 止めろ！</button>
+      <div id="stop-hint">正しい答えが来たらタップ！</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="sc-result" class="screen">
+  <div class="res-title">結果発表！</div>
+  <div class="res-rank" id="res-rank">🏆</div>
+  <div><span class="res-score" id="res-score">0</span><span class="res-denom"> pts</span></div>
+  <div class="res-pct" id="res-pct">0%</div>
+  <div class="res-msg" id="res-msg"></div>
+  <div class="res-stats">
+    <div class="stat-box"><span class="stat-n" id="st-correct">0</span><span class="stat-l">✅ 正解</span></div>
+    <div class="stat-box"><span class="stat-n" id="st-wrong">0</span><span class="stat-l">❌ 不正解</span></div>
+    <div class="stat-box"><span class="stat-n" id="st-combo">0</span><span class="stat-l">🔥 最大コンボ</span></div>
+  </div>
+  <div id="result-btn-wrap" style="display:flex;flex-direction:column;gap:.6rem;align-items:center;margin-top:.8rem;width:100%;max-width:340px;">
+    <button class="play-again" id="play-again-retry" style="width:100%;">🔁 リトライ</button>
+    <button class="play-again" id="play-again-bonus" style="width:100%;">❤️‍🔥 ライフ+2でリトライ！</button>
+    <button class="play-again" id="play-again" style="width:100%;">🏠 レベル選択へ</button>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div id="feedback-overlay">
+  <div id="fb-text"></div>
+  <div id="fb-ans"></div>
+</div>
+<div id="flash-overlay"></div>
+
+<!-- STAGE SPLASH -->
+<div id="stage-splash">
+  <div id="stage-inner">
+    <div id="stage-lbl">STAGE UP!</div>
+    <div id="stage-num">2</div>
+    <div id="stage-name">スピードアップ！</div>
+  </div>
+</div>
+
+<!-- WARIO COMMAND SPLASH ★ 新規 -->
+<div id="wario-splash">
+  <div id="wario-splash-cmd">選べ！</div>
+  <div id="wario-splash-en">CHOOSE!</div>
+</div>
+
+<div id="explosion-wrap"><div id="explosion-emoji">💥</div></div>
+<div id="timer-countdown"></div>
+<div id="vignette-overlay"></div>
+<div id="miss-x-flash"></div>
+<div id="rainbow-aura"></div>
+<div id="type-splash"><div id="type-splash-icon">🔫</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  QUESTION DATA  ※ build.py によって questions_xxx.js の内容が自動挿入されます
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+//  GAME META  — タイトル・説明など単元固有の情報
+// ═══════════════════════════════════════════════════════════════
+var GAME_META = {
+  lsKey:      'nh2u1_clear',
+  pageTitle:  '英語ミニゲーム道場 🎮 NH2 Unit1',
+  titleStars: '✈️ 🎮 ✈️',
+  titleJp:    'New Horizon 2 · Unit 1',
+  titleUnit:  '🏆 初級 · 中級 · 上級 から30問',
+  chips:      [
+    {cls:'c1', text:'🔫 選べ！'},
+    {cls:'c6', text:'📝 入れろ！'},
+    {cls:'c2', text:'🃏 並べろ！'},
+    {cls:'c7', text:'🔤 スペル！'},
+    {cls:'c10',text:'🧹 消せ！'},
+    {cls:'c9', text:'🧲 同じ！'},
+    {cls:'c3', text:'✏️ 直せ！'},
+    {cls:'c4', text:'⭕ ◯か✗か！'},
+    {cls:'c8', text:'📡 タッチ！'},
+    {cls:'c5', text:'🛑 止めろ！'},
+    {cls:'c11',text:'⌨️ 書け！'},
+  ],
+  easyDesc:   '単語・正誤・be going to<br>基本をしっかり確認！',
+  mediumDesc: 'will・SVOO・並べ替え・対話<br>文法をしっかり練習！',
+  hardDesc:   '誤り訂正・日→英訳・タイピング<br>テストに向けて総仕上げ！',
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  QUESTION DATA  (New Horizon 2 · Unit 1)
+// ═══════════════════════════════════════════════════════════════
+var EASY_Q=[
+// 単語・語彙 (7問)
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'vacation',hint:'名詞',ans:0,ch:['休み（休暇）','食事','経験','旅行']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'experience',hint:'名詞',ans:0,ch:['経験','旅行','予約','言語']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'reservation',hint:'名詞',ans:0,ch:['予約','経験','出発','到着']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'weigh',hint:'動詞',ans:0,ch:['重さがある','泳ぐ','食べる','通う']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'communicate',hint:'動詞',ans:0,ch:['伝え合う','旅行する','観光する','出発する']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'famous',hint:'形容詞',ans:0,ch:['有名な','大きい','美しい','古い']},
+{t:'vocab',g:'vocab',tag:'単語・語彙',q:'mosque',hint:'名詞',ans:0,ch:['モスク','教会','寺院','神社']},
+// 正誤問題 (8問)
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'アンナは一人で札幌へ行った。',src:'Scene 1',ans:false,ex:'Anna went to Sapporo with her family.（家族と一緒）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'アンナは兄弟とスキーを楽しんだ。',src:'Scene 1',ans:true,ex:'I enjoyed skiing with my brother.（正しい）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'リコの便はシンガポールに午後5時に到着する。',src:'Riko のレター',ans:true,ex:'My flight arrives in Singapore at 5 p.m.（正しい）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'マーライオンパークへはここから遠い。',src:'会話文',ans:false,ex:"No, it's not.（遠くない）"},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'マーライオンはライオンの体と魚の頭を持っている。',src:'Email',ans:false,ex:'body of a fish and the head of a lion.（魚の体＋ライオンの頭）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'マーライオンの重さは70トンだ。',src:'Email',ans:true,ex:'it weighs 70 tons.（正しい）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'シンガポールドルには3種類の言語が書かれている。',src:'Email',ans:false,ex:'four different languages（4種類）'},
+{t:'tf',g:'tf',tag:'正誤問題（本文）',q:'リコはチャイナタウンの壁で名探偵コナンの絵を見た。',src:'Reading',ans:true,ex:'One of the paintings showed Detective Conan.（正しい）'},
+// be going to 穴埋め (7問)
+{t:'fill',g:'begt',tag:'文法① be going to',q:'I ___ going to visit Singapore.',sub:'私はシンガポールを訪問する予定です。',ans:0,ch:['am','is','are','was']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:'She ___ going to show us the city.',sub:'彼女は私たちに街を案内する予定です。',ans:0,ch:['is','am','are','will']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:'We ___ going to have lunch.',sub:'私たちは昼食をとる予定です。',ans:0,ch:['are','am','is','do']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:'Are you going to ___ Merlion Park?',sub:'あなたはマーライオンパークを訪問する予定ですか？',ans:0,ch:['visit','visiting','visited','visits']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:'He is not going to ___ tomorrow.',sub:'彼は明日来る予定ではありません。',ans:0,ch:['come','comes','came','coming']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:'___ she going to make a reservation?',sub:'彼女は予約をする予定ですか？',ans:0,ch:['Is','Are','Am','Do']},
+{t:'fill',g:'begt',tag:'文法① be going to',q:"I'm ___ going to eat breakfast.",sub:'私は朝食を食べる予定ではありません。',ans:0,ch:['not','no','never',"don't"]},
+// スペル並べ替え (4問)
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'famous',sub:'（形容詞）有名な'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'visit',sub:'（動詞）訪問する'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'leave',sub:'（動詞）出発する'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'enjoy',sub:'（動詞）楽しむ'},
+// 単語マッチング (2問)
+{t:'match',g:'match',tag:'単語マッチング',sub:'意味が同じ単語をペアでタップ！',pairs:[['vacation','休暇'],['famous','有名な'],['mosque','モスク'],['weigh','重さがある']]},
+{t:'match',g:'match',tag:'単語マッチング',sub:'意味が同じ単語をペアでタップ！',pairs:[['communicate','伝え合う'],['arrive','到着する'],['visit','訪問する'],['enjoy','楽しむ']]},
+// 正しいスペルを消せ (2問)
+{t:'erase',g:'erase',tag:'正しいスペルを消せ！',sub:'正しくスペルされた英単語をすべてタップ！',words:['vacation','vacaton','famous','famouse','mosque','mosk'],correct:[0,2,4]},
+{t:'erase',g:'erase',tag:'正しいスペルを消せ！',sub:'正しくスペルされた英単語をすべてタップ！',words:['arrive','arrivee','enjoy','enjy','visit','vissit'],correct:[0,2,4]},
+];
+
+// ══════════════════════════════
+//  MEDIUM_Q — 中級編 30問
+// ══════════════════════════════
+var MEDIUM_Q=[
+// will 穴埋め (6問)
+{t:'fill',g:'will',tag:'文法② will',q:'I ___ make a reservation.',sub:'私は予約をします。',ans:0,ch:['will','am','do','going']},
+{t:'fill',g:'will',tag:'文法② will',q:'She ___ show you some pictures.',sub:'彼女はあなたに写真を見せるでしょう。',ans:0,ch:['will','is','does','going']},
+{t:'fill',g:'will',tag:'文法② will',q:'___ you show me around the city?',sub:'街を案内してくれますか？',ans:0,ch:['Will','Do','Are','Is']},
+{t:'fill',g:'will',tag:'文法② will',q:'He will ___ a reservation.',sub:'彼は予約をするでしょう。',ans:0,ch:['make','makes','made','making']},
+{t:'fill',g:'will',tag:'文法② will',q:'I will ___ leave for Singapore.',sub:'私はシンガポールへ出発しないでしょう。',ans:0,ch:['not','no','never',"don't"]},
+{t:'fill',g:'will',tag:'文法② will',q:'She will ___ us English.',sub:'彼女は私たちに英語を教えてくれるでしょう。',ans:0,ch:['teach','teaches','taught','teaching']},
+// 人+もの 穴埋め (5問)
+{t:'fill',g:'svoo',tag:'文法③ 人+もの',q:'I will show ___ some pictures.',sub:'私はあなたに写真を見せます。',ans:0,ch:['you','your','yours','yourself']},
+{t:'fill',g:'svoo',tag:'文法③ 人+もの',q:'She will buy ___ a gift.',sub:'彼女は私にプレゼントを買ってくれるでしょう。',ans:0,ch:['me','my','mine','I']},
+{t:'fill',g:'svoo',tag:'文法③ 人+もの',q:'He will teach ___ English.',sub:'彼は私たちに英語を教えてくれるでしょう。',ans:0,ch:['us','our','we','ours']},
+{t:'fill',g:'svoo',tag:'文法③ 人+もの',q:'I will ___ you some pictures at school.',sub:'学校であなたに写真を見せます。',ans:0,ch:['show','shows','showed','showing']},
+{t:'fill',g:'svoo',tag:'文法③ 人+もの',q:'Please ___ me the book.',sub:'私に本をください。',ans:0,ch:['give','gives','gave','giving']},
+// call A B 穴埋め (4問)
+{t:'fill',g:'call',tag:'文法④ call A B',q:'People ___ this area Little India.',sub:'人々はこの地域をリトルインディアと呼んでいます。',ans:0,ch:['call','calls','called','calling']},
+{t:'fill',g:'call',tag:'文法④ call A B',q:'They ___ him Jun.',sub:'彼らは彼をジュンと呼んでいます。',ans:0,ch:['call','calls','called','calling']},
+{t:'fill',g:'call',tag:'文法④ call A B',q:'We ___ this animal a Merlion.',sub:'私たちはこの動物をマーライオンと呼んでいます。',ans:0,ch:['call','calls','called','calling']},
+{t:'fill',g:'call',tag:'文法④ call A B',q:'My uncle ___ this food curry rice.',sub:'おじはこの料理をカレーライスと呼んでいます。',ans:0,ch:['calls','call','called','calling']},
+// 並べ替え (6問)
+{t:'arrange',g:'will',tag:'文法② will',words:['I','will','make','a','reservation'],ans:'I will make a reservation.',sub:'私は予約をします。'},
+{t:'arrange',g:'will',tag:'文法② will',words:['Will','you','show','me','around'],ans:'Will you show me around?',sub:'案内してくれますか？'},
+{t:'arrange',g:'svoo',tag:'文法③ 人+もの',words:['I','will','show','you','some','pictures'],ans:'I will show you some pictures.',sub:'私はあなたに写真を見せます。'},
+{t:'arrange',g:'svoo',tag:'文法③ 人+もの',words:['She','will','buy','me','a','gift'],ans:'She will buy me a gift.',sub:'彼女は私にプレゼントを買ってくれるでしょう。'},
+{t:'arrange',g:'call',tag:'文法④ call A B',words:['People','call','this','area','Little','India'],ans:'People call this area Little India.',sub:'人々はこの地域をリトルインディアと呼んでいます。'},
+{t:'arrange',g:'call',tag:'文法④ call A B',words:['They','call','him','Jun'],ans:'They call him Jun.',sub:'彼らは彼をジュンと呼んでいます。'},
+// 対話補充 (5問)
+{t:'dialog',g:'dialog',tag:'対話補充',q:'Anna: How ___ your vacation?\nJun: It was great!',sub:'___に入る正しい語を選んでください',ans:0,ch:['was','is','were','will']},
+{t:'dialog',g:'dialog',tag:'対話補充',q:'Jun: Are you going to ___ Merlion Park?\nRiko: Yes, I am!',sub:'___に入る正しい語を選んでください',ans:0,ch:['visit','visiting','visited','visits']},
+{t:'dialog',g:'dialog',tag:'対話補充',q:"Riko: Will you show me around?\nEddy: Sure! I ___ show you some pictures.",sub:'___に入る正しい語を選んでください',ans:0,ch:['will','am','going','do']},
+{t:'dialog',g:'dialog',tag:'対話補充',q:"Anna: ___ you going to come to Sapporo?\nJun: No, I'm not.",sub:'___に入る正しい語を選んでください',ans:0,ch:['Are','Do','Will','Is']},
+{t:'dialog',g:'dialog',tag:'対話補充',q:'Anna: I will show you some pictures.\nRiko: ___ you show me around, too?',sub:'___に入る正しい語を選んでください',ans:0,ch:['Will','Do','Are','Is']},
+// スペル並べ替え (4問)
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'mosque',sub:'（名詞）モスク'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'weigh',sub:'（動詞）重さがある'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'vacation',sub:'（名詞）休暇'},
+{t:'spell',g:'spell',tag:'スペル並べ替え',word:'arrive',sub:'（動詞）到着する'},
+];
+
+// ══════════════════════════════
+//  HARD_Q — 上級編 30問
+// ══════════════════════════════
+var HARD_Q=[
+// 文法誤り (7問)
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nI am going to visited Singapore tomorrow.',ans:0,ch:['visited','going','am','Singapore'],ex:'be going to の後は動詞の原形。visited → visit'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nShe will shows you some pictures.',ans:0,ch:['shows','will','you','pictures'],ex:'will の後は動詞の原形。shows → show'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nAre you going to leaves tomorrow?',ans:0,ch:['leaves','Are','going','tomorrow'],ex:'be going to の後は動詞の原形。leaves → leave'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nI will show to you some pictures.',ans:0,ch:['to','will','show','pictures'],ex:'show＋人＋もの の語順。to は不要'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nPeople call this area to Little India.',ans:0,ch:['to','call','this','area'],ex:'call A B の形。to は不要'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nIs you going to make a reservation?',ans:0,ch:['Is','you','going','reservation'],ex:'主語が you のとき Are を使う。Is → Are'},
+{t:'error',g:'error',tag:'文法誤り',q:'次の英文の間違っている単語を選べ！\nShe will buys a gift for me.',ans:0,ch:['buys','will','gift','for'],ex:'will の後は動詞の原形。buys → buy'},
+// 日本語→英語 (7問)
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「私はシンガポールを訪問する予定です。」の正しい英語は？',ans:0,ch:['I am going to visit Singapore.','I going to visit Singapore.','I am going to visiting Singapore.','I am go to visit Singapore.']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「彼女は予約をする予定ですか？」の正しい英語は？',ans:0,ch:['Is she going to make a reservation?','Are she going to make a reservation?','Is she going to makes a reservation?','Does she going to make a reservation?']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「私は予約をします。」の正しい英語は？',ans:0,ch:['I will make a reservation.','I will makes a reservation.','I going to make a reservation.','I am will make a reservation.']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「街を案内してくれますか？」の正しい英語は？',ans:0,ch:['Will you show me around?','Do you show me around?','Are you show me around?','Will you shows me around?']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「人々はこの地域をリトルインディアと呼んでいます。」の正しい英語は？',ans:0,ch:['People call this area Little India.','People call Little India this area.','People calls this area to Little India.','People is calling this area Little India.']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「私はあなたに写真を見せます。」の正しい英語は？',ans:0,ch:['I will show you some pictures.','I will show to you some pictures.','I will shows you some pictures.','I will show your some pictures.']},
+{t:'translate',g:'ja_to_en',tag:'日本語→英語',q:'「私たちは肉を食べる予定ではありません。」の正しい英語は？',ans:0,ch:['We are not going to eat meat.','We not going to eat meat.','We are going not to eat meat.',"We don't going to eat meat."]},
+// タイピング (5問)
+{t:'typing',g:'typing',tag:'タイピング',q:'「私はシンガポールを訪問する予定です。」',sub:"I am going to / I'm going to どちらでも正解",ans:['I am going to visit Singapore',"I'm going to visit Singapore"]},
+{t:'typing',g:'typing',tag:'タイピング',q:'「私は予約をします。」',sub:'I will で始めましょう',ans:['I will make a reservation']},
+{t:'typing',g:'typing',tag:'タイピング',q:'「街を案内してくれますか？」',sub:'Will you show で始めましょう',ans:['Will you show me around the city','Will you show me around']},
+{t:'typing',g:'typing',tag:'タイピング',q:'「私はあなたに写真を見せます。」',sub:'I will show で始めましょう',ans:['I will show you some pictures','I will show you a picture']},
+{t:'typing',g:'typing',tag:'タイピング',q:'「人々はこの地域をリトルインディアと呼んでいます。」',sub:'People call で始めましょう',ans:['People call this area Little India']},
+// 止めろ！(5問)
+{t:'stop',g:'stop',tag:'止めろ！',q:'I ___ going to visit Singapore.',sub:'正しい答えが来たらタップ！',ans:'am',decoys:['is','are','do','was']},
+{t:'stop',g:'stop',tag:'止めろ！',q:'She ___ going to make a reservation.',sub:'正しい答えが来たらタップ！',ans:'is',decoys:['am','are','do','will']},
+{t:'stop',g:'stop',tag:'止めろ！',q:'I will ___ you some pictures.',sub:'正しい答えが来たらタップ！',ans:'show',decoys:['shows','showed','showing','see']},
+{t:'stop',g:'stop',tag:'止めろ！',q:'People ___ this area Little India.',sub:'正しい答えが来たらタップ！',ans:'call',decoys:['calls','called','calling','are']},
+{t:'stop',g:'stop',tag:'止めろ！',q:'She will buy ___ a gift.',sub:'正しい答えが来たらタップ！',ans:'me',decoys:['my','mine','I','you']},
+// 品詞タッチ (3問)
+{t:'touch',g:'touch',tag:'品詞タッチ！',target:'名詞',sub:'「名詞」だけをタップ！ 動詞・形容詞は×',words:[{word:'vacation',ok:true},{word:'weigh',ok:false},{word:'mosque',ok:true},{word:'arrive',ok:false},{word:'reservation',ok:true},{word:'teach',ok:false},{word:'famous',ok:false},{word:'experience',ok:true},{word:'enjoy',ok:false},{word:'picture',ok:true}]},
+{t:'touch',g:'touch',tag:'品詞タッチ！',target:'動詞',sub:'「動詞」だけをタップ！ 名詞・形容詞は×',words:[{word:'visit',ok:true},{word:'vacation',ok:false},{word:'weigh',ok:true},{word:'mosque',ok:false},{word:'enjoy',ok:true},{word:'reservation',ok:false},{word:'teach',ok:true},{word:'famous',ok:false},{word:'arrive',ok:true},{word:'experience',ok:false}]},
+{t:'touch',g:'touch',tag:'品詞タッチ！',target:'形容詞',sub:'「形容詞」だけをタップ！ 名詞・動詞は×',words:[{word:'famous',ok:true},{word:'vacation',ok:false},{word:'great',ok:true},{word:'weigh',ok:false},{word:'new',ok:true},{word:'mosque',ok:false},{word:'cool',ok:true},{word:'visit',ok:false},{word:'nice',ok:true},{word:'reservation',ok:false}]},
+// 語形変化 (3問)
+{t:'translate',g:'morph',tag:'語形変化',q:'「will not」の短縮形は？',sub:'アポストロフィを使った短縮形',ans:0,ch:["won't","willn't","wont","will'nt"]},
+{t:'translate',g:'morph',tag:'語形変化',q:'「I am going to」の否定文は？',sub:'not の位置に注意',ans:0,ch:['I am not going to ~.','I not am going to ~.','I am going not to ~.','I do not going to ~.']},
+{t:'translate',g:'morph',tag:'語形変化',q:'「are going to」の疑問文は？',sub:'be動詞を文頭に出す',ans:0,ch:['Are you going to ~?','Do you going to ~?','Will you going to ~?','Is you going to ~?']},
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME CONFIGURATION
+// ═══════════════════════════════════════════════════════════════
+
+var LS_KEY=''; // GAME_META.lsKey から起動時に設定
+var STAGES_BY_LEVEL={
+  easy:[
+    {limit:10, time:15000,color:'#1a3a2a',label:'STAGE 1',name:'ウォームアップ！'},
+    {limit:20, time:12000,color:'#1e3a5f',label:'STAGE 2',name:'本番スタート！'},
+    {limit:26, time:10000,color:'#7f1d1d',label:'STAGE 3',name:'スピードアップ！'},
+    {limit:9999,time:8000,color:'#064e3b',label:'FINAL',  name:'ラストスパート！'}
+  ],
+  medium:[
+    {limit:10, time:12000,color:'#1a3a2a',label:'STAGE 1',name:'ウォームアップ！'},
+    {limit:20, time:9500, color:'#1e3a5f',label:'STAGE 2',name:'本番スタート！'},
+    {limit:26, time:7500, color:'#7f1d1d',label:'STAGE 3',name:'スピードアップ！'},
+    {limit:9999,time:6000,color:'#064e3b',label:'FINAL',  name:'ラストスパート！'}
+  ],
+  hard:[
+    {limit:10, time:10000,color:'#1a3a2a',label:'STAGE 1',name:'ウォームアップ！'},
+    {limit:20, time:8000, color:'#1e3a5f',label:'STAGE 2',name:'本番スタート！'},
+    {limit:26, time:6500, color:'#7f1d1d',label:'STAGE 3',name:'スピードアップ！'},
+    {limit:9999,time:5000,color:'#064e3b',label:'FINAL',  name:'ラストスパート！'}
+  ]
+};
+var STAGES=STAGES_BY_LEVEL.easy;
+
+var TYPE_META={
+  vocab:    {cmd:'えらべ！',   en:'CHOOSE!',   color:'#1d4ed8', fx:'🔫'},
+  fill:     {cmd:'いれろ！',   en:'FILL IN!',  color:'#0369a1', fx:'⬇️'},
+  arrange:  {cmd:'ならべろ！', en:'ARRANGE!',  color:'#5b21b6', fx:'🃏'},
+  spell:    {cmd:'スペル！',   en:'SPELL IT!', color:'#6d28d9', fx:'🔤'},
+  erase:    {cmd:'けせ！',     en:'ERASE IT!', color:'#0f766e', fx:'🧹'},
+  error:    {cmd:'なおせ！',   en:'FIX IT!',   color:'#991b1b', fx:'✏️'},
+  tf:       {cmd:'◯か✗か！',  en:'T or F!',   color:'#065f46', fx:'⚖️'},
+  translate:{cmd:'やくせ！',   en:'TRANSLATE!',color:'#1d4ed8', fx:'📖'},
+  dialog:   {cmd:'こたえろ！', en:'RESPOND!',  color:'#1e40af', fx:'💬'},
+  picture:  {cmd:'えらべ！',   en:'CHOOSE!',   color:'#1d4ed8', fx:'🔫'},
+  typing:   {cmd:'かけ！',     en:'TYPE IT!',  color:'#9d174d', fx:'⌨️'},
+  match:    {cmd:'あわせろ！', en:'MATCH IT!', color:'#0f766e', fx:'🧲'},
+  touch:    {cmd:'タッチ！',   en:'TOUCH IT!', color:'#92400e', fx:'📡'},
+  stop:     {cmd:'とめろ！',   en:'STOP IT!',  color:'#7f1d1d', fx:'🛑'},
+};
+
+// ══ WARIO SPLASH COLORS (タイプ別) ══
+var SPLASH_COLORS={
+  vocab:'#1E90FF', fill:'#0369a1', arrange:'#7C3AED', spell:'#D97706',
+  erase:'#059669', error:'#DC2626', tf:'#059669',     translate:'#2563EB',
+  dialog:'#1E90FF',picture:'#1E90FF',typing:'#7C3AED',
+  match:'#0D9488', touch:'#C2410C', stop:'#B91C1C',
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  LEVEL & STATE
+// ═══════════════════════════════════════════════════════════════
+var selectedLevel='easy';
+function selectLevel(lv){
+  selectedLevel=lv;
+  STAGES=STAGES_BY_LEVEL[lv];
+  startCountdown();
+}
+
+var MAX_QUESTIONS=30;
+
+var state={
+  queue:[],wrongPool:[],
+  idx:0,score:0,lives:3,combo:0,maxCombo:0,
+  correct:0,wrong:0,
+  timerTO:null,fuseRAF:null,timerStart:0,timeLimit:0,
+  answered:false,
+  arrUserWords:[],arrPool:[],
+  spellUserLetters:[],spellPool:[],
+  eraseCorrectSet:new Set(),eraseFound:0,eraseTotal:0,
+  matchSelected:null,matchDone:0,matchTotal:4,matchPairs:[],
+  touchWords:[],touchIdx:0,touchTO:null,touchCorrect:0,touchOk:0,touchNeeded:0,
+  stopOptions:[],stopIdx:0,stopTO:null,
+};
+var gameOverCount=0;
+var bonusLivesOnStart=0;
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function $(id){return document.getElementById(id);}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME META 適用
+// ═══════════════════════════════════════════════════════════════
+function applyGameMeta(){
+  if(typeof GAME_META==='undefined') return;
+  document.title = GAME_META.pageTitle;
+  LS_KEY = GAME_META.lsKey;
+  var ts=$('title-stars'); if(ts) ts.textContent=GAME_META.titleStars;
+  var tj=$('title-jp');    if(tj) tj.textContent=GAME_META.titleJp;
+  var tu=$('title-unit');  if(tu) tu.textContent=GAME_META.titleUnit;
+  var tc=$('title-chips');
+  if(tc && GAME_META.chips){
+    tc.innerHTML=GAME_META.chips.map(function(chip){
+      return '<span class="chip '+chip.cls+'">'+chip.text+'</span>';
+    }).join('');
+  }
+  var ed=$('easy-desc');   if(ed) ed.innerHTML=GAME_META.easyDesc;
+  var md=$('medium-desc'); if(md) md.innerHTML=GAME_META.mediumDesc;
+  var hd=$('hard-desc');   if(hd) hd.innerHTML=GAME_META.hardDesc;
+}
+applyGameMeta();
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  $(id).classList.add('active');
+}
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+function normalizeTyping(s){return s.toLowerCase().replace(/[.,!?']/g,'').trim();}
+
+// ═══════════════════════════════════════════════════════════════
+//  WARIO COMMAND SPLASH ★ 新規追加
+// ═══════════════════════════════════════════════════════════════
+function showWarioSplash(cmd, en, type, cb){
+  var sp=$('wario-splash');
+  $('wario-splash-cmd').textContent=cmd;
+  $('wario-splash-en').textContent=en;
+  var color=SPLASH_COLORS[type]||'#1E90FF';
+  sp.style.background=color;
+  sp.className='';
+  void sp.offsetWidth; // reflow
+  sp.className='active';
+  setTimeout(function(){
+    sp.className='';
+    setTimeout(cb,80);
+  },680);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VISUAL FX
+// ═══════════════════════════════════════════════════════════════
+function flash(color,dur){
+  var el=$('flash-overlay');
+  el.style.background=color;el.style.opacity='.45';
+  setTimeout(function(){el.style.transition='opacity '+(dur||300)+'ms';el.style.opacity='0';
+    setTimeout(function(){el.style.transition='';},dur||300);},50);
+}
+function particles(x,y,ok){
+  var emojis=ok?['⭐','✨','💥','🎉','👍']:['💨','❌'];
+  for(var i=0;i<6;i++){
+    var el=document.createElement('div');
+    el.className='particle';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=(x+Math.random()*60-30)+'px';
+    el.style.top=(y+Math.random()*60-30)+'px';
+    el.style['--dx']=(Math.random()*160-80)+'px';
+    el.style['--dy']=(Math.random()*-120-30)+'px';
+    document.body.appendChild(el);
+    setTimeout(function(e){e.remove();},800,el);
+  }
+}
+function niceStarBurst(){
+  var cx=window.innerWidth/2,cy=window.innerHeight/2;
+  var emojis=['⭐','✨','🌟','💫','⭐','✨','🌟','💥'];
+  for(var i=0;i<14;i++){
+    var el=document.createElement('div');
+    el.className='particle';
+    el.style.fontSize=(1.2+Math.random()*1.2)+'rem';
+    var ang=(i/14)*Math.PI*2+Math.random()*0.25;
+    el.style.left=(cx+Math.cos(ang)*16)+'px';
+    el.style.top=(cy+Math.sin(ang)*16)+'px';
+    var dist=130+Math.random()*140;
+    el.style['--dx']=(Math.cos(ang)*dist)+'px';
+    el.style['--dy']=(Math.sin(ang)*dist)+'px';
+    el.textContent=emojis[i%emojis.length];
+    document.body.appendChild(el);
+    setTimeout(function(e){e.remove();},900,el);
+  }
+}
+function showFeedback(ok,ansText,event){
+  var fb=$('feedback-overlay');
+  $('fb-text').textContent=ok?'やった！':'あちゃ…';
+  $('fb-ans').textContent=ansText?'正解: '+ansText:'';
+  fb.className='show';
+  setTimeout(function(){fb.className='';},ok?600:3700);
+  if(event) particles(event.clientX,event.clientY,ok);
+  if(ok){
+    niceStarBurst();
+  } else {
+    var xf=$('miss-x-flash');
+    xf.className='';void xf.offsetWidth;xf.className='active';
+  }
+}
+function bulletFX(el,ok){
+  var rect=el.getBoundingClientRect();
+  var bul=document.createElement('div');
+  bul.className='bullet-fx';
+  bul.textContent=ok?'💥':'💨';
+  bul.style.left=(rect.left+rect.width/2-16)+'px';
+  bul.style.top=(rect.top+rect.height/2-16)+'px';
+  document.body.appendChild(bul);
+  setTimeout(function(){bul.remove();},500);
+}
+function magnetFX(el){
+  var rect=el.getBoundingClientRect();
+  var m=document.createElement('div');
+  m.className='magnet-fx';
+  m.textContent='🧲';
+  m.style.left=(rect.left+rect.width/2-16)+'px';
+  m.style.top=(rect.top+rect.height/2-16)+'px';
+  document.body.appendChild(m);
+  setTimeout(function(){m.remove();},600);
+}
+function triggerExplosion(){
+  $('fuse-bomb').textContent='💥';
+  var ew=$('explosion-wrap');
+  $('explosion-emoji').textContent='💥';
+  ew.className='booming';
+  $('sc-game').classList.add('shake');
+  setTimeout(function(){$('sc-game').classList.remove('shake');},450);
+  for(var i=0;i<10;i++){
+    var el=document.createElement('div');
+    el.className='particle';
+    el.textContent=['💥','🔥','⚡','💫','✨'][Math.floor(Math.random()*5)];
+    el.style.left=(window.innerWidth/2+Math.random()*80-40)+'px';
+    el.style.top=(window.innerHeight/2+Math.random()*80-40)+'px';
+    var ang=Math.random()*Math.PI*2;
+    var dist=80+Math.random()*120;
+    el.style['--dx']=(Math.cos(ang)*dist)+'px';
+    el.style['--dy']=(Math.sin(ang)*dist)+'px';
+    document.body.appendChild(el);
+    setTimeout(function(e){e.remove();},800,el);
+  }
+  setTimeout(function(){ew.className='';$('fuse-bomb').textContent='💣';},900);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STAGE BACKGROUND
+// ═══════════════════════════════════════════════════════════════
+function applyStageBackground(idx){
+  var el=$('sc-game');
+  el.classList.remove('stage-0','stage-1','stage-2','stage-3');
+  el.style.backgroundColor='';el.style.backgroundImage='';
+  el.style.backgroundSize='';el.style.animation='';
+  void el.offsetWidth;
+  el.classList.add('stage-'+Math.min(idx,3));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STAGE BANNER
+// ═══════════════════════════════════════════════════════════════
+function showStageBanner(sd,cb){
+  var sp=$('stage-splash');
+  $('stage-lbl').textContent=sd.label;
+  $('stage-num').textContent=sd.label==='FINAL'?'🏁 FINAL':'STAGE '+(STAGES.indexOf(sd)+1);
+  $('stage-name').textContent=sd.name;
+  var sn=$('stage-num');
+  sn.style.animation='none';
+  void sn.offsetWidth;
+  sn.style.animation='';
+  sp.className='show';
+  flash('rgba(255,215,0,.7)',80);
+  setTimeout(function(){flash('rgba(180,0,255,.65)',100);},200);
+  setTimeout(function(){flash('rgba(255,215,0,.5)',120);},450);
+  niceStarBurst();
+  setTimeout(function(){sp.className='';setTimeout(cb,200);},1900);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  COUNTDOWN → START
+// ═══════════════════════════════════════════════════════════════
+function startCountdown(){
+  showScreen('sc-countdown');
+  var n=3;
+  var cdN=$('cd-num'),cdG=$('cd-go');
+  cdN.style.display='';cdG.style.display='none';cdN.textContent='3';
+  function tick(){
+    if(n<=0){
+      cdN.style.display='none';cdG.style.display='';
+      cdG.style.animation='none';
+      setTimeout(function(){cdG.style.animation='';},10);
+      setTimeout(startGame,700);return;
+    }
+    cdN.textContent=n;cdN.style.animation='none';
+    setTimeout(function(){cdN.style.animation='cdAnim 1s cubic-bezier(.34,1.56,.64,1)';},10);
+    n--;setTimeout(tick,900);
+  }
+  tick();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BUILD QUEUE
+// ═══════════════════════════════════════════════════════════════
+function buildQueue(){
+  var pool=selectedLevel==='easy'?EASY_Q:selectedLevel==='medium'?MEDIUM_Q:HARD_Q;
+  state.queue=shuffle(pool.slice());state.idx=0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  START GAME
+// ═══════════════════════════════════════════════════════════════
+function startGame(){
+  state.score=0;state.lives=3+bonusLivesOnStart;bonusLivesOnStart=0;state.combo=0;state.maxCombo=0;
+  state.correct=0;state.wrong=0;state.wrongPool=[];
+  buildQueue();updateHUD();
+  $('hud').style.display='flex';
+  $('fuse-wrap').style.display='flex';
+  $('combo-disp').style.display='none';
+  showScreen('sc-game');
+  showStageBanner(STAGES[0],function(){lastStageIdx=0;nextQuestion();});
+}
+function updateHUD(){
+  var maxH=Math.max(3,state.lives);var h='';for(var i=0;i<maxH;i++) h+=(i<state.lives)?'❤️':'🖤';
+  $('lives-disp').textContent=h;
+  $('score-disp').textContent=state.score;
+  $('prog-disp').textContent=(state.idx+1)+' / '+MAX_QUESTIONS;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STAGE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function getStage(){
+  for(var i=0;i<STAGES.length;i++) if(state.idx<STAGES[i].limit) return STAGES[i];
+  return STAGES[STAGES.length-1];
+}
+var lastStageIdx=0;
+function checkStageUp(){
+  var cur=getStage(),ci=STAGES.indexOf(cur);
+  if(ci>lastStageIdx){lastStageIdx=ci;return cur;}
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NEXT QUESTION
+// ═══════════════════════════════════════════════════════════════
+function nextQuestion(){
+  if(state.idx>=MAX_QUESTIONS){showResult();return;}
+  if(state.idx>=state.queue.length){
+    var pool=selectedLevel==='easy'?EASY_Q:selectedLevel==='medium'?MEDIUM_Q:HARD_Q;
+    if(state.wrongPool.length>0){
+      state.queue=state.queue.concat(shuffle(state.wrongPool));state.wrongPool=[];
+    } else {
+      state.queue=state.queue.concat(shuffle(pool.slice()));
+    }
+  }
+  updateHUD();
+  var su=checkStageUp();
+  if(su){clearFuse();showStageBanner(su,function(){renderQuestion();});}
+  else renderQuestion();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER QUESTION ★ WarioSplash対応に改修
+// ═══════════════════════════════════════════════════════════════
+function renderQuestion(){
+  if(state.lives<=0){showResult();return;}
+  var q=state.queue[state.idx];
+  var meta=TYPE_META[q.t]||TYPE_META.vocab;
+  var stage=getStage();
+
+  applyStageBackground(STAGES.indexOf(stage));
+  state.answered=false;
+
+  var extra=(q.t==='typing'?15000:q.t==='arrange'?3000:q.t==='spell'?4000:
+             q.t==='match'?5000:q.t==='touch'?5000:q.t==='erase'?4000:0);
+
+  // ★ WarioWare風コマンドスプラッシュを表示してからゲーム開始
+  showWarioSplash(meta.cmd, meta.en, q.t, function(){
+    $('cmd-text').textContent=meta.cmd;
+    $('cmd-text').style.animation='none';
+    setTimeout(function(){$('cmd-text').style.animation='cmdPop .35s cubic-bezier(.34,1.56,.64,1)';},10);
+    $('cmd-en').textContent=meta.en;
+
+    if(q.t==='spell'){
+      $('q-box').textContent='「'+q.sub+'」を英語でスペルしよう！';
+    } else if(q.t==='erase'){
+      $('q-box').textContent=q.sub;
+    } else if(q.t==='match'){
+      $('q-box').textContent=q.sub;
+    } else if(q.t==='touch'){
+      $('q-box').textContent=q.sub;
+    } else if(q.t==='stop'){
+      $('q-box').textContent=q.q;
+    } else if(q.t==='arrange'){
+      $('q-box').textContent=q.sub||'単語を正しい順に並べよ！';
+    } else {
+      $('q-box').textContent=q.q||'';
+    }
+    $('q-hint').textContent=q.sub||q.hint||q.src||'';
+    if(['spell','erase','match','touch'].indexOf(q.t)>=0) $('q-hint').textContent='';
+
+    var zones=['choices-grid','tf-grid','arr-zone','err-zone','typ-zone',
+               'spell-zone','erase-zone','match-zone','touch-zone','stop-zone'];
+    zones.forEach(function(z){$(z).style.display='none';});
+    $('choices-grid').innerHTML='';
+
+    if(q.t==='tf')         renderTF(q);
+    else if(q.t==='arrange')renderArrange(q);
+    else if(q.t==='error') renderError(q);
+    else if(q.t==='typing')renderTyping(q);
+    else if(q.t==='spell') renderSpell(q);
+    else if(q.t==='erase') renderErase(q);
+    else if(q.t==='match') renderMatch(q);
+    else if(q.t==='touch') renderTouch(q);
+    else if(q.t==='stop')  renderStop(q);
+    else                   renderChoice(q);
+
+    startFuse(stage.time+extra);
+  });
+}
+
+// ─── CHOICE ───
+function renderChoice(q){
+  $('choices-grid').style.display='';
+  var cols=(q.ch&&q.ch.some(function(c){return c.length>8;}))?1:2;
+  $('choices-grid').style.gridTemplateColumns=cols===1?'1fr':'1fr 1fr';
+  var correctText=q.ch[q.ans];
+  var shuffledCh=shuffle(q.ch.slice());
+  var newAns=shuffledCh.indexOf(correctText);
+  var qS={ch:shuffledCh,ans:newAns,t:q.t};
+  shuffledCh.forEach(function(text,i){
+    var btn=document.createElement('button');
+    btn.className='cbtn';btn.textContent=text;
+    btn.addEventListener('click',function(e){choiceAnswer(i,qS,e,btn);});
+    $('choices-grid').appendChild(btn);
+  });
+}
+function choiceAnswer(idx,q,e,btnEl){
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var btns=document.querySelectorAll('.cbtn');
+  var ok=(idx===q.ans);
+  btns[idx].classList.add(ok?'ok':'ng');
+  if(!ok)btns[q.ans].classList.add('ok');
+  btns.forEach(function(b){b.disabled=true;});
+  if(q.t==='vocab'||q.t==='picture'||q.t==='translate'||q.t==='dialog')
+    bulletFX(btnEl,ok);
+  handleResult(ok,q.ch[q.ans],e);
+}
+
+// ─── TF ───
+function renderTF(q){
+  $('choices-grid').style.display='none';$('tf-grid').style.display='grid';
+  [$('tf-true'),$('tf-false')].forEach(function(b){b.disabled=false;b.className='tfbtn';});
+  $('tf-true').onclick=function(e){tfAnswer(true,q,e);};
+  $('tf-false').onclick=function(e){tfAnswer(false,q,e);};
+}
+function tfAnswer(val,q,e){
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var ok=(val===q.ans);
+  var cl=val?$('tf-true'):$('tf-false');
+  var ot=val?$('tf-false'):$('tf-true');
+  cl.classList.add(ok?'ok':'ng');
+  if(!ok)ot.classList.add('ok');
+  $('tf-true').disabled=true;$('tf-false').disabled=true;
+  handleResult(ok,q.ex,e);
+}
+
+// ─── ARRANGE ───
+function renderArrange(q){
+  $('arr-zone').style.display='flex';$('arr-zone').style.flexDirection='column';
+  $('arr-ans').innerHTML='';$('arr-pool').innerHTML='';$('arr-check').disabled=true;
+  state.arrUserWords=[];
+  state.arrPool=shuffle(q.words.slice());
+  state.arrPool.forEach(function(w,i){
+    var btn=document.createElement('button');
+    btn.className='wbtn';btn.textContent=w;btn.dataset.idx=i;
+    btn.addEventListener('click',function(){poolClick(i,q);});
+    $('arr-pool').appendChild(btn);
+  });
+}
+function poolClick(idx,q){
+  if(state.answered)return;
+  var poolBtns=$('arr-pool').querySelectorAll('.wbtn');
+  var btn=poolBtns[idx];
+  if(btn.classList.contains('used'))return;
+  btn.classList.add('used');
+  state.arrUserWords.push(state.arrPool[idx]);
+  var ab=document.createElement('button');
+  ab.className='wbtn aw';ab.textContent=state.arrPool[idx];
+  ab.addEventListener('click',function(){ansClick(idx,q,ab,btn);});
+  $('arr-ans').appendChild(ab);
+  $('arr-check').disabled=(state.arrUserWords.length===0);
+}
+function ansClick(origIdx,q,ab,poolBtn){
+  if(state.answered)return;
+  var pos=state.arrUserWords.indexOf(state.arrPool[origIdx]);
+  if(pos>=0)state.arrUserWords.splice(pos,1);
+  ab.remove();poolBtn.classList.remove('used');
+  $('arr-check').disabled=(state.arrUserWords.length===0);
+}
+$('arr-check').addEventListener('click',function(){
+  var q=state.queue[state.idx];
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var user=state.arrUserWords.join(' ').replace(/[.?!]$/,'');
+  var correct=q.ans.replace(/[.?!]$/,'');
+  handleResult(user===correct,q.ans,null);
+});
+
+// ─── ERROR ───
+function renderError(q){
+  $('err-zone').style.display='flex';
+  var lines=q.q.split('\n');
+  $('err-sentence').textContent=lines[1]||lines[0];
+  $('err-btns').innerHTML='';
+  (q.ch||[]).forEach(function(word,i){
+    var btn=document.createElement('button');
+    btn.className='errbtn';btn.textContent=word;
+    btn.addEventListener('click',function(e){errorAnswer(i,q,e);});
+    $('err-btns').appendChild(btn);
+  });
+}
+function errorAnswer(idx,q,e){
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var btns=$('err-btns').querySelectorAll('.errbtn');
+  var ok=(idx===q.ans);
+  btns[idx].classList.add(ok?'ok':'ng');
+  if(!ok)btns[q.ans].classList.add('ok');
+  btns.forEach(function(b){b.disabled=true;});
+  handleResult(ok,q.ch[q.ans]+(q.ex?' ('+q.ex+')':''),e);
+}
+
+// ─── TYPING ───
+function renderTyping(q){
+  $('typ-zone').style.display='flex';
+  var inp=$('typ-input');
+  inp.value='';inp.className='typ-input';inp.disabled=false;$('typ-submit').disabled=false;
+  setTimeout(function(){try{inp.focus();}catch(e){}},200);
+  $('typ-submit').onclick=function(e){typingAnswer(q,e);};
+  inp.onkeydown=function(ev){if(ev.key==='Enter')typingAnswer(q,ev);};
+}
+function typingAnswer(q,e){
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var val=normalizeTyping($('typ-input').value);
+  var ok=q.ans.some(function(a){return normalizeTyping(a)===val;});
+  $('typ-input').className='typ-input '+(ok?'ok':'ng');
+  $('typ-input').disabled=true;$('typ-submit').disabled=true;
+  handleResult(ok,q.ans[0],e);
+}
+
+// ─── SPELL ───
+function renderSpell(q){
+  $('spell-zone').style.display='flex';
+  $('spell-word-display').textContent=q.word.split('').map(function(){return '_';}).join(' ');
+  $('spell-ans').innerHTML='';
+  $('spell-pool').innerHTML='';
+  $('spell-check').disabled=true;
+  state.spellUserLetters=[];
+  state.spellPool=shuffle(q.word.split(''));
+  state.spellPool.forEach(function(letter,i){
+    var btn=document.createElement('button');
+    btn.className='lbtn';btn.textContent=letter.toUpperCase();btn.dataset.idx=i;
+    btn.addEventListener('click',function(){spellPoolClick(i,q);});
+    $('spell-pool').appendChild(btn);
+  });
+}
+function spellPoolClick(idx,q){
+  if(state.answered)return;
+  var poolBtns=$('spell-pool').querySelectorAll('.lbtn');
+  var btn=poolBtns[idx];
+  if(btn.classList.contains('used'))return;
+  btn.classList.add('used');
+  state.spellUserLetters.push({letter:state.spellPool[idx],idx:idx});
+  var display=state.spellUserLetters.map(function(x){return x.letter;});
+  var word=q.word;
+  var pads=[];
+  for(var i=display.length;i<word.length;i++) pads.push('_');
+  $('spell-word-display').textContent=display.map(function(l){return l.toUpperCase();}).join(' ')+
+    (pads.length?' '+pads.join(' '):'');
+  var ab=document.createElement('button');
+  ab.className='lbtn al';ab.textContent=state.spellPool[idx].toUpperCase();
+  var capturedIdx=idx;
+  ab.addEventListener('click',function(){spellAnsClick(capturedIdx,q,ab,btn);});
+  $('spell-ans').appendChild(ab);
+  $('spell-check').disabled=(state.spellUserLetters.length===0);
+}
+function spellAnsClick(origIdx,q,ab,poolBtn){
+  if(state.answered)return;
+  for(var i=0;i<state.spellUserLetters.length;i++){
+    if(state.spellUserLetters[i].idx===origIdx){state.spellUserLetters.splice(i,1);break;}
+  }
+  ab.remove();poolBtn.classList.remove('used');
+  var display=state.spellUserLetters.map(function(x){return x.letter;});
+  var word=q.word;
+  var pads=[];
+  for(var i=display.length;i<word.length;i++) pads.push('_');
+  $('spell-word-display').textContent=(display.length?display.map(function(l){return l.toUpperCase();}).join(' ')+' ':'')+pads.join(' ');
+  $('spell-check').disabled=(state.spellUserLetters.length===0);
+}
+$('spell-check').addEventListener('click',function(){
+  var q=state.queue[state.idx];
+  if(state.answered)return;
+  state.answered=true;clearFuse();
+  var user=state.spellUserLetters.map(function(x){return x.letter;}).join('').toLowerCase();
+  var ok=(user===q.word.toLowerCase());
+  $('spell-word-display').textContent=user.toUpperCase().split('').join(' ');
+  $('spell-word-display').style.color=ok?'#1B5E20':'#7f1d1d';
+  handleResult(ok,q.word,null);
+});
+
+// ─── ERASE ───
+function renderErase(q){
+  $('erase-zone').style.display='flex';
+  state.eraseFound=0;state.eraseTotal=q.correct.length;
+  updateEraseProgress();
+  $('erase-grid').innerHTML='';
+  var correctSet=new Set(q.correct);
+  var items=q.words.map(function(word,i){return{word:word,ok:correctSet.has(i)};});
+  items=shuffle(items);
+  state.eraseCorrectSet=new Set();
+  items.forEach(function(item,i){if(item.ok)state.eraseCorrectSet.add(i);});
+  items.forEach(function(item,i){
+    var btn=document.createElement('button');
+    btn.className='erasebtn';btn.textContent=item.word;
+    btn.addEventListener('click',function(e){eraseClick(i,q,e,btn);});
+    $('erase-grid').appendChild(btn);
+  });
+}
+function updateEraseProgress(){
+  $('erase-progress').textContent='残り '+(state.eraseTotal-state.eraseFound)+' 語を見つけよう！🧹';
+}
+function eraseClick(idx,q,e,btn){
+  if(state.answered||btn.classList.contains('ok'))return;
+  var isCorrect=state.eraseCorrectSet.has(idx);
+  if(isCorrect){
+    btn.classList.add('ok');btn.disabled=true;
+    state.eraseFound++;
+    if(e) particles(e.clientX,e.clientY,true);
+    updateEraseProgress();
+    if(state.eraseFound>=state.eraseTotal){
+      state.answered=true;clearFuse();
+      setTimeout(function(){handleResult(true,'全部見つけた！ Good job!',null);},300);
+    }
+  } else {
+    btn.classList.add('ng');
+    btn.disabled=true;
+    flash('rgba(239,68,68,.3)',300);
+    state.combo=0;updateCombo();
+    setTimeout(function(){
+      btn.classList.remove('ng');btn.disabled=false;
+    },600);
+  }
+}
+
+// ─── MATCH ───
+function renderMatch(q){
+  $('match-zone').style.display='flex';
+  state.matchSelected=null;state.matchDone=0;state.matchTotal=q.pairs.length;
+  state.matchPairs=q.pairs;
+  $('match-info').textContent='0 / '+state.matchTotal+' ペア完了';
+  $('match-grid').innerHTML='';
+  var leftItems=shuffle(q.pairs.map(function(p,i){return {text:p[0],pairIdx:i,side:'L'};}));
+  var rightItems=shuffle(q.pairs.map(function(p,i){return {text:p[1],pairIdx:i,side:'R'};}));
+  for(var i=0;i<q.pairs.length;i++){
+    [leftItems[i],rightItems[i]].forEach(function(item){
+      var btn=document.createElement('button');
+      btn.className='mbtn';btn.textContent=item.text;
+      btn.dataset.pairIdx=item.pairIdx;btn.dataset.side=item.side;
+      btn.addEventListener('click',function(){matchClick(btn,item);});
+      $('match-grid').appendChild(btn);
+    });
+  }
+}
+function matchClick(btn,item){
+  if(state.answered||btn.disabled||btn.classList.contains('matched'))return;
+  if(!state.matchSelected){
+    state.matchSelected={btn:btn,item:item};
+    btn.classList.add('selected');
+    magnetFX(btn);
+  } else {
+    var prev=state.matchSelected;
+    if(prev.btn===btn){btn.classList.remove('selected');state.matchSelected=null;return;}
+    var ok=(prev.item.pairIdx===item.pairIdx && prev.item.side!==item.side);
+    if(ok){
+      [prev.btn,btn].forEach(function(b){
+        b.classList.remove('selected');b.classList.add('flash-ok');
+        setTimeout(function(){b.classList.add('matched');},400);
+        b.disabled=true;
+      });
+      flash('rgba(16,185,129,.2)',250);
+      state.matchDone++;
+      $('match-info').textContent=state.matchDone+' / '+state.matchTotal+' ペア完了';
+      if(state.matchDone>=state.matchTotal){
+        state.answered=true;clearFuse();
+        setTimeout(function(){handleResult(true,'全ペア完成！',null);},500);
+      }
+    } else {
+      [prev.btn,btn].forEach(function(b){
+        b.classList.add('flash-ng');
+        setTimeout(function(){b.classList.remove('flash-ng','selected');},400);
+      });
+      flash('rgba(239,68,68,.2)',250);
+      state.combo=0;updateCombo();
+    }
+    state.matchSelected=null;
+  }
+}
+
+// ─── TOUCH ───
+function renderTouch(q){
+  $('touch-zone').style.display='flex';
+  $('touch-target-label').textContent='【'+q.target+'】だけタップ！ 違う品詞はスルー';
+  state.touchWords=shuffle(q.words.slice());
+  state.touchIdx=0;state.touchCorrect=0;
+  state.touchNeeded=state.touchWords.filter(function(w){return w.ok;}).length;
+  state.touchOk=0;
+  updateTouchProgress();
+  showTouchWord(q);
+  $('touch-skip').onclick=function(){advanceTouch(q,false);};
+}
+function updateTouchProgress(){
+  $('touch-progress').textContent=state.touchOk+' / '+state.touchNeeded+' タッチ成功！';
+}
+function showTouchWord(q){
+  if(state.touchIdx>=state.touchWords.length){
+    if(!state.answered){
+      state.answered=true;clearFuse();clearTimeout(state.touchTO);
+      var ok=(state.touchOk>=Math.ceil(state.touchNeeded*0.6));
+      handleResult(ok,q.target+'の単語を'+state.touchNeeded+'語中'+state.touchOk+'語タッチ！',null);
+    }
+    return;
+  }
+  var w=state.touchWords[state.touchIdx];
+  var cur=$('touch-current');
+  cur.textContent=w.word;
+  cur.className='';void cur.offsetWidth;
+  cur.className='touch-enter';
+  cur.style.color='var(--ink)';
+  cur.style.background='rgba(255,255,255,.93)';
+  cur.style.borderColor='var(--ink)';
+  cur.onclick=function(){
+    if(state.answered)return;
+    clearTimeout(state.touchTO);
+    if(w.ok){
+      cur.style.background='rgba(46,204,113,.5)';
+      cur.style.borderColor='#1B7A1B';
+      state.touchOk++;
+      flash('rgba(16,185,129,.2)',200);
+      updateTouchProgress();
+    } else {
+      cur.style.background='rgba(231,76,60,.5)';
+      cur.style.borderColor='#C62828';
+      flash('rgba(239,68,68,.3)',200);
+      state.combo=0;updateCombo();
+    }
+    state.touchIdx++;
+    setTimeout(function(){showTouchWord(q);},350);
+  };
+  state.touchTO=setTimeout(function(){advanceTouch(q,w.ok);},2000);
+}
+function advanceTouch(q,wasTarget){
+  if(state.answered)return;
+  clearTimeout(state.touchTO);
+  state.touchIdx++;
+  showTouchWord(q);
+}
+
+// ─── STOP ───
+function renderStop(q){
+  $('stop-zone').style.display='flex';
+  state.stopOptions=shuffle(q.decoys.concat([q.ans]));
+  state.stopIdx=0;
+  showStopOption(state.stopOptions[0]);
+  state.stopTO=setInterval(function(){
+    if(state.answered)return;
+    state.stopIdx=(state.stopIdx+1)%state.stopOptions.length;
+    showStopOption(state.stopOptions[state.stopIdx]);
+  },1100);
+  $('stop-tap-btn').onclick=function(){
+    if(state.answered)return;
+    state.answered=true;
+    clearInterval(state.stopTO);clearFuse();
+    var current=state.stopOptions[state.stopIdx];
+    var ok=(current===q.ans);
+    $('stop-current').style.color=ok?'#1B7A1B':'#C62828';
+    $('stop-tap-btn').disabled=true;
+    handleResult(ok,q.ans,null);
+  };
+}
+function showStopOption(opt){
+  var cur=$('stop-current');
+  cur.className='stop-slide-out';
+  setTimeout(function(){
+    cur.textContent=opt;
+    cur.className='stop-slide-in';
+    cur.style.color='var(--ink)';
+  },180);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HANDLE RESULT
+// ═══════════════════════════════════════════════════════════════
+function handleResult(ok,ansText,event){
+  clearTimeout(state.touchTO);clearInterval(state.stopTO);
+  if(ok){
+    state.score++;state.correct++;state.combo++;
+    if(state.combo>state.maxCombo)state.maxCombo=state.combo;
+    flash('rgba(16,185,129,.35)',300);updateCombo();
+  } else {
+    state.lives--;state.wrong++;state.combo=0;
+    if(state.wrongPool.indexOf(state.queue[state.idx])<0)
+      state.wrongPool.push(state.queue[state.idx]);
+    flash('rgba(239,68,68,.5)',400);
+    $('sc-game').classList.add('shake');
+    setTimeout(function(){$('sc-game').classList.remove('shake');},400);
+    updateCombo();
+    if(state.lives<=0){
+      showFeedback(false,ansText,event);updateHUD();
+      setTimeout(showResult,1200);return;
+    }
+  }
+  showFeedback(ok,ok?'':ansText,event);
+  updateHUD();state.idx++;
+  setTimeout(function(){
+    $('feedback-overlay').className='';
+    $('spell-word-display').style.color='';
+    $('stop-tap-btn').disabled=false;$('stop-tap-btn').style.background='';
+    nextQuestion();
+  },ok?700:4000);
+}
+function updateCombo(){
+  var cd=$('combo-disp');
+  var ra=$('rainbow-aura');
+  if(state.combo>=3){
+    cd.style.display='';cd.textContent='🔥 '+state.combo+' コンボ！';
+  } else {
+    cd.style.display='none';
+    ra.classList.remove('active');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FUSE TIMER
+// ═══════════════════════════════════════════════════════════════
+function startFuse(ms){
+  clearFuse();
+  state.timeLimit=ms;state.timerStart=Date.now();
+  $('fuse-remaining').style.background='linear-gradient(90deg,#6b3a1f,#c2762b,#e8a54b)';
+  $('fuse-bomb').textContent='💣';$('fuse-bomb').classList.remove('warn');
+  $('vignette-overlay').className='';
+  var lastCdSecond=-1;
+
+  function frame(){
+    var elapsed=Date.now()-state.timerStart;
+    var remaining=state.timeLimit-elapsed;
+    var pct=1-Math.min(elapsed/state.timeLimit,1);
+    $('fuse-remaining').style.width=(pct*100)+'%';
+    $('fuse-spark').style.left=(pct*100)+'%';
+    var secLeft=Math.ceil(remaining/1000);
+    $('fuse-timer-num').textContent=secLeft+'s';
+    if(pct<0.15){
+      $('fuse-remaining').style.background='linear-gradient(90deg,#ef4444,#dc2626)';
+      $('fuse-bomb').classList.add('warn');
+    } else if(pct<0.35){
+      $('fuse-remaining').style.background='linear-gradient(90deg,#f97316,#ea580c)';
+    } else if(pct<0.55){
+      $('fuse-remaining').style.background='linear-gradient(90deg,#eab308,#d97706)';
+    }
+    if(remaining<=3500&&remaining>0){
+      $('vignette-overlay').classList.add('blink');
+      var growFactor=1+(1-remaining/3500)*0.65;
+      $('fuse-bomb').style.fontSize=(22*growFactor).toFixed(1)+'px';
+      if(secLeft<=3&&secLeft>=1&&secLeft!==lastCdSecond){
+        lastCdSecond=secLeft;
+        var cd=$('timer-countdown');
+        cd.textContent=secLeft;
+        cd.className='';void cd.offsetWidth;
+        cd.className='pop';
+      }
+    } else if(remaining>3500){
+      $('vignette-overlay').classList.remove('blink');
+      $('fuse-bomb').style.fontSize='';
+    }
+    if(pct>0) state.fuseRAF=requestAnimationFrame(frame);
+  }
+  state.fuseRAF=requestAnimationFrame(frame);
+
+  state.timerTO=setTimeout(function(){
+    if(!state.answered){
+      state.answered=true;
+      clearInterval(state.stopTO);
+      triggerExplosion();
+      state.lives--;state.wrong++;state.combo=0;
+      if(state.wrongPool.indexOf(state.queue[state.idx])<0)
+        state.wrongPool.push(state.queue[state.idx]);
+      updateCombo();updateHUD();
+      var q=state.queue[state.idx];
+      var ansText=q.t==='tf'?(q.ans?'◯（True）':'✗（False）'):
+                  q.t==='arrange'||q.t==='spell'?q.ans||q.word:
+                  q.t==='typing'?q.ans[0]:
+                  q.t==='stop'?q.ans:
+                  q.ch?q.ch[q.ans]:'';
+      showFeedback(false,'時間切れ！💣 正解: '+ansText,null);
+      state.idx++;
+      if(state.lives<=0){updateHUD();setTimeout(showResult,1400);return;}
+      setTimeout(function(){$('feedback-overlay').className='';nextQuestion();},1400);
+    }
+  },ms);
+}
+function clearFuse(){
+  cancelAnimationFrame(state.fuseRAF);state.fuseRAF=null;
+  clearTimeout(state.timerTO);state.timerTO=null;
+  clearTimeout(state.touchTO);
+  $('fuse-bomb').classList.remove('warn');
+  $('fuse-bomb').style.fontSize='';
+  $('vignette-overlay').className='';
+  var cd=$('timer-countdown');if(cd){cd.className='';cd.textContent='';}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESULT
+// ═══════════════════════════════════════════════════════════════
+function showResult(){
+  clearFuse();
+  if(state.lives<=0){gameOverCount++;}
+  $('hud').style.display='none';$('fuse-wrap').style.display='none';
+  $('combo-disp').style.display='none';
+  $('rainbow-aura').classList.remove('active');
+  var total=state.correct+state.wrong;
+  var pct=total>0?Math.round(state.correct/total*100):0;
+  $('res-score').textContent=state.correct;
+  $('res-pct').textContent=pct+'%';
+  $('st-correct').textContent=state.correct;
+  $('st-wrong').textContent=state.wrong;
+  $('st-combo').textContent=state.maxCombo;
+  var rank,ri,msg;
+  if(pct>=95){rank='S';ri='🏆';msg='完璧です！テスト満点いけるね！';}
+  else if(pct>=80){rank='A';ri='🥇';msg='すばらしい！あと少しで完璧！';}
+  else if(pct>=65){rank='B';ri='🥈';msg='いいね！苦手なところを復習しよう。';}
+  else if(pct>=50){rank='C';ri='🥉';msg='まだ伸びしろあり！もう一回チャレンジ！';}
+  else{rank='D';ri='💪';msg='くじけないで！繰り返せば必ず上がる！';}
+  $('res-rank').textContent=ri;$('res-msg').textContent=msg+'  Rank: '+rank;
+  showScreen('sc-result');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════════════════════════
+$('start-btn').addEventListener('click',function(){showScreen('sc-level');});
+$('btn-easy').addEventListener('click',function(){lastStageIdx=0;selectLevel('easy');});
+$('btn-medium').addEventListener('click',function(){lastStageIdx=0;selectLevel('medium');});
+$('btn-hard').addEventListener('click',function(){lastStageIdx=0;selectLevel('hard');});
+$('play-again').addEventListener('click',function(){lastStageIdx=0;gameOverCount=0;showScreen('sc-level');});
+$('play-again-retry').addEventListener('click',function(){lastStageIdx=0;selectLevel(selectedLevel);});
+$('play-again-bonus').addEventListener('click',function(){lastStageIdx=0;bonusLivesOnStart=2;selectLevel(selectedLevel);});
+
+// ═══════════════════════════════════════════════════════════════
+//  🏅 CLEAR RECORD
+// ═══════════════════════════════════════════════════════════════
+var LS_KEY='nh2u1_clear';
+
+function saveClearRecord(){
+  var isWin=state.lives>0;
+  if(!isWin) return;
+  var lv=selectedLevel;
+  var score=state.correct;
+  var perfect=(state.wrong===0);
+  var raw=localStorage.getItem(LS_KEY);
+  var data=raw?JSON.parse(raw):{};
+  var prev=data[lv];
+  if(!prev || score>prev.score || (!prev.perfect && perfect)){
+    data[lv]={score:score, perfect:perfect};
+    localStorage.setItem(LS_KEY,JSON.stringify(data));
+  }
+}
+
+function updateLevelCards(){
+  var raw=localStorage.getItem(LS_KEY);
+  var data=raw?JSON.parse(raw):{};
+  ['easy','medium','hard'].forEach(function(lv){
+    var card=document.getElementById('btn-'+lv);
+    var scoreDisp=document.getElementById('score-disp-'+lv);
+    var scorePts=document.getElementById('score-pts-'+lv);
+    var old=card.querySelector('.level-medal');
+    if(old) old.remove();
+    card.classList.remove('perfect');
+    if(data[lv]){
+      var d=data[lv];
+      var medal=document.createElement('span');
+      medal.className='level-medal'+(d.perfect?' gold':'');
+      medal.textContent=d.perfect?'🥇':'🏅';
+      card.appendChild(medal);
+      if(d.perfect) card.classList.add('perfect');
+      scorePts.textContent=d.score+'/30';
+      scoreDisp.classList.add('visible');
+    } else {
+      scorePts.textContent='--';
+      scoreDisp.classList.remove('visible');
+    }
+  });
+}
+
+(function(){
+  var _prev=showResult;
+  showResult=function(){
+    _prev();
+    saveClearRecord();
+  };
+})();
+
+(function(){
+  var _prevShowScreen=showScreen;
+  showScreen=function(id){
+    _prevShowScreen(id);
+    if(id==='sc-level') updateLevelCards();
+  };
+})();
+
+updateLevelCards();
+
+document.getElementById('btn-reset').addEventListener('click', function(){
+  if(confirm('クリア記録をすべてリセットしますか？')) {
+    localStorage.removeItem(LS_KEY);
+    updateLevelCards();
+  }
+});
+</script>
+</body>
+</html>
